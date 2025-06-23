@@ -1,0 +1,8 @@
+import React from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import Dashboard from './pages/Dashboard'
+import BillsManager from './pages/BillsManager'
+import BudgetManager from './pages/BudgetManager'
+import ExpenseTracker from './pages/ExpenseTracker'
+import Insights from './pages/Insights'
+import Login from './pages/Login'
