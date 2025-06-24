@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import BillsManager from './pages/BillsManager';
 import BudgetManager from './pages/BudgetManager';
+import ExpenseTracker from './pages/ExpenseTracker';
 import { AuthProvider } from './context/AuthContext';
 
 const App = () => {
@@ -15,6 +16,8 @@ const App = () => {
             {/* <Route path="/dashboard" element={<Dashboard />} /> */}
             <Route path="/bills" element={<BillsManager />} />
             <Route path="/budget" element={<BudgetManager />} />
+            <Route path="/expenses" element={<ExpenseTracker />} />
+
 
           </Routes>
         </Router>
