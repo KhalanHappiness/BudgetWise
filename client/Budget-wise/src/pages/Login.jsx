@@ -65,7 +65,7 @@ const Login = () => {
                           <Field
                             name="name"
                             type="text"
-                            className="form-control form-control-lg"
+                            className="form-control"
                             placeholder="Enter your full name"
                           />
                           <ErrorMessage name="name" component="div" className="text-danger" />
@@ -77,7 +77,7 @@ const Login = () => {
                         <Field
                           name="email"
                           type="email"
-                          className="form-control form-control-lg"
+                          className="form-control "
                           placeholder="Enter your email"
                         />
                         <ErrorMessage name="email" component="div" className="text-danger" />
@@ -89,7 +89,7 @@ const Login = () => {
                           <Field
                             name="password"
                             type={showPassword ? 'text' : 'password'}
-                            className="form-control form-control-lg"
+                            className="form-control "
                             placeholder="Enter your password"
                           />
                           <button
@@ -105,7 +105,7 @@ const Login = () => {
 
                       <button
                         type="submit"
-                        className="btn btn-primary btn-lg w-100 mb-3"
+                        className="btn btn-primary  w-100 mb-3"
                         disabled={isSubmitting || loading}
                       >
                         {loading || isSubmitting ? (
@@ -134,7 +134,7 @@ const Login = () => {
 
                   <button
                     type="button"
-                    className="btn btn-success btn-lg w-100"
+                    className="btn btn-success w-100"
                     onClick={loginDemo}
                   >
                     <i className="bi bi-rocket me-2"></i>
