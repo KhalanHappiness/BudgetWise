@@ -1,21 +1,18 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
-import Routes from './routes/Routes'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Login from './pages/Login';
 import { AuthProvider } from './context/AuthContext';
-import { DataProvider } from './context/DataContext';
 
-function App() {
+const App = () => {
   return (
     <AuthProvider>
-      <DataProvider>
-        <Router>
-          <div className="App">
-            <Routes />
-          </div>
-        </Router>
-      </DataProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Login />} />
+        </Routes>
+      </Router>
     </AuthProvider>
   );
-}
+};
 
 export default App;
