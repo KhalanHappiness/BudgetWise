@@ -13,8 +13,8 @@ const Sidebar = () => {
   ];
 
   return (
-    // Removed min-vh-100
-    <div className="bg-white border-end shadow-sm">
+  
+    <div className="bg-white border-end shadow-sm min-vh-100">
       <div className="p-3">
         <nav className="nav flex-column">
           {menuItems.map((item) => (

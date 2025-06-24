@@ -1,5 +1,5 @@
 import React from 'react';
-import Sidebar from '../components/Layout/Menubar';
+import Sidebar from '../components/Layout/Sidebar';
 const Insights = () => {
   const budgets = [
     { id: 1, category: 'Groceries', budgeted: 400, spent: 450 },
@@ -20,10 +20,9 @@ const Insights = () => {
     b.spent > max.spent ? b : max, budgets[0] || { category: 'None', spent: 0 });
 
   return (
-    <div className="container my-5">
-     <Sidebar />
+    <div className="container ">
 
-      <div className="row mb-4 mt-4">
+      <div className="row mb-4 ">
               <h4 className="mb-4">Financial Insights</h4>
 
         <div className="col-md-12">

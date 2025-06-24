@@ -1,6 +1,6 @@
 import React from 'react';
 import Header from '../components/Layout/Header';
-import Sidebar from '../components/Layout/Menubar';
+import Sidebar from '../components/Layout/Sidebar';
 
 const Dashboard = () => {
   // Hardcoded data
@@ -32,25 +32,11 @@ const Dashboard = () => {
   const overdueBills = bills.filter(bill => bill.status === 'overdue');
 
   return (
-    <div className="container-fluid py-4" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+    <div className="container-fluid " style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
         
       <div className="container">
-        <Header/>
-        <Sidebar/>
-        {/* Reminders */}
-        {reminders.length > 0 && (
-          <div className="alert alert-warning border-start border-warning mb-4 mt-5">
-            <div className="d-flex align-items-center mb-2">
-              <i className="fas fa-bell text-warning me-2"></i>
-              <h5 className="alert-heading mb-0">Reminders</h5>
-            </div>
-            {reminders.map(reminder => (
-              <p key={reminder.id} className="mb-1 small">{reminder.message}</p>
-            ))}
-          </div>
-        )}
 
-        {/* Summary Cards */}
+         {/* Summary Cards */}
         <div className="row g-4 mb-4">
           <div className="col-md-4">
             <div className="card h-100 shadow-sm">
@@ -94,6 +80,21 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Reminders */}
+        {reminders.length > 0 && (
+          <div className="alert alert-warning border-start border-warning mb-4">
+            <div className="d-flex align-items-center mb-2">
+              <i className="fas fa-bell text-warning me-2"></i>
+              <h5 className="alert-heading mb-0">Reminders</h5>
+            </div>
+            {reminders.map(reminder => (
+              <p key={reminder.id} className="mb-1 small">{reminder.message}</p>
+            ))}
+          </div>
+        )}
+
+       
 
         {/* Upcoming Bills */}
         <div className="card shadow-sm mb-4">

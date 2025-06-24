@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Sidebar from '../components/Layout/Menubar';
+import Sidebar from '../components/Layout/Sidebar';
 
 const BillsManager = () => {
   const [bills, setBills] = useState([
@@ -95,9 +95,8 @@ const BillsManager = () => {
   };
 
   return (
-    <div className="container my-5">  
-      <Sidebar/>
-      <div className="d-flex justify-content-between align-items-center mb-4 mt-5">
+    <div className="container ">  
+      <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="h4">Bills Manager</h2>
         <button className="btn btn-primary" onClick={() => setShowAddBill(true)}>
           <span className="me-1">➕</span> Add Bill

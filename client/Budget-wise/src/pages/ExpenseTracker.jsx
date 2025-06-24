@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Sidebar from '../components/Layout/Menubar';
+import Sidebar from '../components/Layout/Sidebar';
 
 const ExpenseTracker = () => {
   // Hardcoded expenses data
@@ -75,9 +75,8 @@ const ExpenseTracker = () => {
     <div>
       
       
-      <div className="container py-4">
-        <Sidebar/>
-        <div className="d-flex justify-content-between align-items-center mb-4 mt-5">
+      <div className="container ">
+        <div className="d-flex justify-content-between align-items-center mb-4">
           <h4 className="fw-bold">Expense Tracker</h4>
           <button
             onClick={() => setShowAddExpense(true)}

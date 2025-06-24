@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Sidebar from '../components/Layout/Menubar';
+import Sidebar from '../components/Layout/Sidebar';
 
 
 const BudgetManager = () => {
@@ -51,10 +51,10 @@ const BudgetManager = () => {
   };
 
   return (
-    <div className="container my-5">
+    <div className="container ">
       {/* Page Header and Add Budget Button */}
-      <Sidebar/>
-      <div className="d-flex justify-content-between align-items-center mb-5 mt-5">
+    
+      <div className="d-flex justify-content-between align-items-center mb-5">
         <h4 className="mb-0">Budget Manager</h4>
         <button
           onClick={() => setShowAddBudget(true)}
