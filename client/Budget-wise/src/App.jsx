@@ -6,6 +6,7 @@ import BillsManager from './pages/BillsManager';
 import BudgetManager from './pages/BudgetManager';
 import ExpenseTracker from './pages/ExpenseTracker';
 import Dashboard from './pages/Dashboard';
+import Insights from './pages/Insights';
 import { AuthProvider } from './context/AuthContext';
 
 const App = () => {
@@ -18,6 +19,7 @@ const App = () => {
             <Route path="/bills" element={<BillsManager />} />
             <Route path="/budget" element={<BudgetManager />} />
             <Route path="/expenses" element={<ExpenseTracker />} />
+            <Route path="/insights" element={<Insights />} />
 
 
           </Routes>
