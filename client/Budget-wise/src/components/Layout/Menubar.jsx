@@ -13,7 +13,7 @@ const Sidebar = () => {
   ];
 
   return (
-    
+    // Removed min-vh-100
     <div className="bg-white border-end shadow-sm">
       <div className="p-3">
         <nav className="nav flex-column">
@@ -23,7 +23,7 @@ const Sidebar = () => {
               to={item.path}
               className={`nav-link py-3 px-3 rounded mb-1 ${
                 location.pathname === item.path
-                  ? 'bg-primary text-white'
+                  ? 'bg-light text-primary fw-medium'
                   : 'text-dark hover-bg-light'
               }`}
               style={{
