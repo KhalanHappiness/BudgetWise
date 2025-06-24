@@ -181,7 +181,7 @@ const BillsManager = () => {
                       bill.status === 'paid' ? 'bg-success' : 
                       'bg-warning'
                     }`}>
-                      {bill.status.toUpperCase()}
+                      {bill.status}
                     </span>
                     <br />
                     <small>{bill.category} • Due: {bill.dueDate} • {bill.recurring}</small>
