@@ -136,6 +136,67 @@ class Category(db.Model):
         }
 
 
+class Bill(db.Model):
+    __tablename__ = 'bills'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    amount = db.Column(db.Numeric(10, 2), nullable=False)
+    category = db.Column(db.String(100), nullable=False)
+    due_date = db.Column(db.Date, nullable=False)
+    recurring_type = db.Column(
+        db.Enum('weekly', 'monthly', 'yearly', 'one-time', name='recurring_types'),
+        default='monthly'
+    )
+    paid_date = db.Column(db.Date, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    
+    payments = db.relationship('BillPayment', back_populates='bill', cascade='all, delete-orphan')
+
+    __table_args__ = (
+        Index('idx_user_due_date', 'user_id', 'due_date'),
+    )
+
+    @property
+    def status(self):
+        if self.paid_date:
+            return 'paid'
+        elif self.due_date < date.today():
+            return 'overdue'
+        else:
+            return 'upcoming'
+
+    @property
+    def is_overdue(self):
+        """True if bill is overdue and unpaid"""
+        return self.status == 'overdue'
+
+    def mark_paid(self, paid_date=None):
+        self.paid_date = paid_date or date.today()
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'name': self.name,
+            'amount': float(self.amount),
+            'category': self.category,
+            'due_date': self.due_date.isoformat(),
+            'recurring_type': self.recurring_type,
+            'paid_date': self.paid_date.isoformat() if self.paid_date else None,
+            'status': self.status,
+            'is_overdue': self.is_overdue,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+
+    
+   
+
+
 
 
  
