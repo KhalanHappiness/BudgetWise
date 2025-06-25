@@ -25,11 +25,11 @@ class User(db.model):
 
     #Relationships
 
-    budgets = db.relationship('Budget', back_populates = 'user', cascade='all, delete-orphan')
-    expenses = db.relationship('Expense', back_populates = 'user', cascade ='all, delete-orphan')
-    bills = db.relationship('Bill', back_populates = 'user', cascade ='all, delete-orphan')
-    bill_payments = db.relationship('BillPayment', back_populates = 'user', cascade ='all, delete-orphan')
-    reminders = db.relationship('Reminder', back_populates = 'user', cascade ='all, delete-orphan')
+    budgets = db.relationship('Budget', backref='user', cascade='all, delete-orphan', lazy='dynamic')
+    expenses = db.relationship('Expense', backref='user', cascade='all, delete-orphan', lazy='dynamic')
+    bills = db.relationship('Bill', backref='user', cascade='all, delete-orphan', lazy='dynamic')
+    bill_payments = db.relationship('BillPayment', backref='user', cascade='all, delete-orphan', lazy='dynamic')
+    reminders = db.relationship('Reminder', backref='user', cascade='all, delete-orphan', lazy='dynamic') 
 
     
 
@@ -57,7 +57,6 @@ class Budget(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     category = db.relationship('Category', back_populates='budgets')
-    user = db.relationship('User', back_populates='budgets')
 
     __table_args__ = (
         UniqueConstraint('user_id', 'category_id', name='unique_budget_category_user'),
@@ -90,7 +89,7 @@ class Budget(db.Model):
 class Expense(db.Model):
     __tablename__ = 'expenses'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
     description = db.Column(db.String(255), nullable=False)
@@ -99,7 +98,6 @@ class Expense(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    user = db.relationship('User', back_populates='expenses')
     category = db.relationship('Category', back_populates='expenses')
 
     __table_args__ = (
@@ -139,7 +137,7 @@ class Category(db.Model):
 class Bill(db.Model):
     __tablename__ = 'bills'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     name = db.Column(db.String(255), nullable=False)
     amount = db.Column(db.Numeric(10, 2), nullable=False)
@@ -154,7 +152,7 @@ class Bill(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     
-    payments = db.relationship('BillPayment', back_populates='bill', cascade='all, delete-orphan')
+    payments = db.relationship('BillPayment', backref='bill', cascade='all, delete-orphan', lazy='dynamic')
 
     __table_args__ = (
         Index('idx_user_due_date', 'user_id', 'due_date'),
@@ -192,6 +190,42 @@ class Bill(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
+    
+class BillPayment(db.Model):
+    __tablename__ = 'bill_payments'
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    bill_id = db.Column(db.Integer, db.ForeignKey('bills.id', ondelete='SET NULL'), nullable=True)
+    bill_name = db.Column(db.String(255), nullable=False)  # Stored for history even if bill is deleted
+    amount = db.Column(db.Numeric(10, 2), nullable=False)
+    category = db.Column(db.String(100), nullable=False)
+    original_due_date = db.Column(db.Date, nullable=False)
+    paid_date = db.Column(db.Date, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    
+    
+    # Index for better query performance
+    __table_args__ = (
+        Index('idx_user_paid_date', 'user_id', 'paid_date'),
+    )
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'bill_id': self.bill_id,
+            'bill_name': self.bill_name,
+            'amount': float(self.amount),
+            'category': self.category,
+            'due_date': self.due_date.isoformat(),
+            'paid_date': self.paid_date.isoformat(),
+            'created_at': self.created_at.isoformat(),
+        }
+    
+    
+    
 
     
    
