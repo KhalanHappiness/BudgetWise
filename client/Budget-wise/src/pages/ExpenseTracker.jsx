@@ -82,8 +82,8 @@ const ExpenseTracker = () => {
             onClick={() => setShowAddExpense(true)}
             className="btn btn-primary d-flex align-items-center"
           >
-            <span className="me-2">+</span>
-            Add Expense
+              <i className="bi bi-plus-circle me-2"></i>            
+              Add Expense
           </button>
         </div>
 

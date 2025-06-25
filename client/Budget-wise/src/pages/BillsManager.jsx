@@ -99,7 +99,7 @@ const BillsManager = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="h4">Bills Manager</h2>
         <button className="btn btn-primary" onClick={() => setShowAddBill(true)}>
-          <span className="me-1">➕</span> Add Bill
+          <i className="bi bi-plus-circle me-2"></i>
         </button>
       </div>
 
