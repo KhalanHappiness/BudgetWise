@@ -114,4 +114,8 @@ class Budgets(Resource):
         
         return response
     
+    def post(self):
+
+        data = request.get_json()
+    
 api.add_resource(Budgets, '/budgets')

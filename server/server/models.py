@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData, func
 from datetime import datetime, date
+from sqlalchemy.orm import validates
 from sqlalchemy import UniqueConstraint, Index
 import re
 
@@ -70,6 +71,18 @@ class Budget(db.Model):
 
     def __repr__(self):
         return f'<Budget {self.category.name if self.category else "Unknown"}: ${self.budgeted_amount}>'
+    
+    @validates('category_id')
+    def validate_category(self, key, value):
+        if not value or not value.strip():
+            raise ValueError("Category is required and cannot be empty")
+        return value.strip()
+
+    @validates('budgeted_Amount')
+    def validate_budgeted_amount(self, key, budget):
+        if not budget or not budget.strip():
+            raise ValueError("budgeted_amount is required and cannot be empty")
+        return budget.strip()
 
     @property
     def spent_amount(self):
@@ -134,10 +147,12 @@ class Expense(db.Model):
 
     def __repr__(self):
         return f'<Expense {self.description}: ${self.amount}>'
-
-    def validate_amount(self):
-        #Ensure amount is positive
-        return self.amount > 0
+    
+    @validates (amount)
+    def validate_amount(self, key, amount):
+        if amount <= 0:
+            raise ValueError("Amount must be greater than zero")
+        return amount
 
     def to_dict(self):
         return {
