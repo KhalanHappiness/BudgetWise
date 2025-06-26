@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 
 
 const BudgetManager = () => {
-  const [budgets, setBudgets] =useState([]),
-  const [categories, setCategories] = useState([]);
-  const [showAddBudget, setShowAddBudget] = useState(false);
-  const [newBudget, setNewBudget] = useState({ category_id: '', budgeted_amount: '' });
+  const [budgets, setBudgets] =useState([])
+  const [categories, setCategories] = useState([])
+  const [showAddBudget, setShowAddBudget] = useState(false)
+  const [newBudget, setNewBudget] = useState({ category_id: '', budgeted_amount: '' })
 
   //Fetch categories for dropdown
 
@@ -15,6 +15,13 @@ const BudgetManager = () => {
     .then((data) => setCategories(data))
     .catch((err) => console.error('Error fetching categories:', err))
   }, [])
+
+  useEffect(()=>{
+    fetch('http://127.0.0.1:5000/budgets')
+    .then((res) => res.json())
+    .then((data)=> setBudgets(data))
+    .catch((err) => console.error('Error fetching categories:', err))
+  },[])
   
   
   const addBudget = () => {
