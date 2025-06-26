@@ -100,13 +100,53 @@ def hello():
 
 
 
+class Categories(Resource):
+    def get(self):
+        categories = Category.query.order_by(Category.name).all()
+        
+        categories_dict = [cat.to_dict() for cat in categories]
+
+        response = make_response(
+            categories_dict,   
+            200
+        )
+
+        return response
+
+    def post(self):
+        data = request.get_json()
+
+        #validation
+        if not data or 'name' not in data:
+            return {'error': 'name is required'}, 400
+
+        try:
+            category = Category(
+                name=data['name'], 
+                description=data.get('description')
+                )
+            db.session.add(category)
+            db.session.commit()
+
+            return make_response(
+                category.to_dict(), 
+                201)
+        
+        except Exception as e:
+            db.session.rollback()
+
+            if "UNIQUE constraint failed" in str(e):
+                return {'error': 'Category name already exists'}, 400
+            return {'error': str(e)}, 500
+
+
 class Budgets(Resource):
 
     def get(self):
 
         user_id = g.user_id
 
-        budgets = Budget.query.filter(User.id == user_id).all()
+        budgets = Budget.query.filter_by(user_id=user_id).all()
 
         budget_Dict = [user.to_dict() for user in budgets]
 
@@ -123,7 +163,7 @@ class Budgets(Resource):
         budget = Budget(
             user_id = g.user_id,
             category_id = data['category_id'],
-            budgeted_amount = float(data['budgeted_Amount'])
+            budgeted_amount = float(data['budgeted_amount'])
 
         )
 
@@ -133,5 +173,6 @@ class Budgets(Resource):
         return make_response(budget.to_dict(), 201)
 
 
-    
+api.add_resource(Categories, '/categories')
+   
 api.add_resource(Budgets, '/budgets')
