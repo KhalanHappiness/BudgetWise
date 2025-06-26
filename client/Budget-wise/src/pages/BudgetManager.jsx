@@ -1,39 +1,22 @@
-import React, { useState } from 'react';
-import Sidebar from '../components/Layout/Sidebar';
+import React, { useState, useEffect } from 'react';
 
 
 const BudgetManager = () => {
-  // Hardcoded initial budget data
-  const [budgets, setBudgets] = useState([
-    {
-      id: 1,
-      category: 'Groceries',
-      budgeted: 500,
-      spent: 350,
-    },
-    {
-      id: 2,
-      category: 'Utilities',
-      budgeted: 200,
-      spent: 220, 
-    },
-    {
-      id: 3,
-      category: 'Entertainment',
-      budgeted: 150,
-      spent: 80,
-    },
-    {
-      id: 4,
-      category: 'Transportation',
-      budgeted: 300,
-      spent: 290,
-    },
-  ]);
-
+  const [budgets, setBudgets] =useState([]),
+  const [categories, setCategories] = useState([]);
   const [showAddBudget, setShowAddBudget] = useState(false);
-  const [newBudget, setNewBudget] = useState({ category: '', budgeted: '' });
+  const [newBudget, setNewBudget] = useState({ category_id: '', budgeted_amount: '' });
 
+  //Fetch categories for dropdown
+
+  useEffect(()=>{
+    fetch('http://127.0.0.1:5000/categories')
+    .then((res)=> res.json())
+    .then((data) => setCategories(data))
+    .catch((err) => console.error('Error fetching categories:', err))
+  }, [])
+  
+  
   const addBudget = () => {
     if (newBudget.category && newBudget.budgeted) {
       setBudgets([
