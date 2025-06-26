@@ -25,20 +25,24 @@ const BudgetManager = () => {
   
   
   const addBudget = () => {
-    if (newBudget.category && newBudget.budgeted) {
-      setBudgets([
-        ...budgets,
-        {
-          id: Date.now(),
-          category: newBudget.category,
-          budgeted: parseFloat(newBudget.budgeted),
-          spent: 0, 
-        },
-      ]);
-      setNewBudget({ category: '', budgeted: '' });
-      setShowAddBudget(false);
-    }
-  };
+    if (!newBudget.category_id || newBudget.budgeted_amount) return;
+
+    fetch('http://127.0.0.1:5000/budgets', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        category_id: parseInt(newBudget.category_id),
+        budgeted_amount: parseFloat(newBudget.budgeted_amount)
+      })
+    })
+      .then((res) => res.json())
+      .then((added) =>{
+        setBudgets([...budgets, added])
+        setNewBudget({category_id:'', budgeted_amount: ''})
+        setShowAddBudget(false)
+      })
+      .catch((err) => console.error('Failed to add budget:', err));
+   }
 
   return (
     <div className="container ">
