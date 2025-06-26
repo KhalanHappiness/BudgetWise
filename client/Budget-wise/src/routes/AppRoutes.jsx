@@ -7,7 +7,7 @@ import ExpenseTracker from '../pages/ExpenseTracker';
 import Insights from '../pages/Insights';
 import Login from '../pages/Login';
 import Layout from '../components/Layout/Layout';
-import { useAuth } from '../context/AuthContext'; // ✅ import this
+import { useAuth } from '../context/AuthContext'; 
 
 const AppRoutes = () => {
   const { currentUser } = useAuth();

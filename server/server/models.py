@@ -25,7 +25,7 @@ class User(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    budgets = db.relationship('Budget', backref='user', cascade='all, delete-orphan', lazy='dynamic')
+    budgets = db.relationship('Budget', back_populates='user', cascade='all, delete-orphan')
     expenses = db.relationship('Expense', backref='user', cascade='all, delete-orphan', lazy='dynamic')
     bills = db.relationship('Bill', backref='user', cascade='all, delete-orphan', lazy='dynamic')
     bill_payments = db.relationship('BillPayment', backref='user', cascade='all, delete-orphan', lazy='dynamic')
@@ -61,6 +61,8 @@ class Budget(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     category = db.relationship('Category', back_populates='budgets')
+    user = db.relationship('User', back_populates='budgets')
+
 
     __table_args__ = (
         UniqueConstraint('user_id', 'category_id', name='unique_budget_category_user'),

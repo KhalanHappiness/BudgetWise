@@ -31,9 +31,9 @@ class BudgetsById(Resource):
 
     def get(self, id):
 
-        user = User.query.filter(User.id == id).first()
+        budgets = Expense.query.filter(User.id == id).all()
 
-        budget_Dict = user.to_dict()
+        budget_Dict = [user.to_dict() for user in budgets]
 
         response = make_response(
             budget_Dict,
