@@ -76,7 +76,7 @@ class Budget(db.Model):
     def validate_category(self, key, value):
         if not value or not value.strip():
             raise ValueError("Category is required and cannot be empty")
-        return value.strip()
+        return value
 
     @validates('budgeted_amount')
     def validate_budgeted_amount(self, key, budget):

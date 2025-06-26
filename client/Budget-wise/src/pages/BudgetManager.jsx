@@ -25,7 +25,7 @@ const BudgetManager = () => {
   
   
   const addBudget = () => {
-    if (!newBudget.category_id || newBudget.budgeted_amount) return;
+    if (!newBudget.category_id || ! newBudget.budgeted_amount) return;
 
     fetch('http://127.0.0.1:5000/budgets', {
       method: 'POST',
@@ -41,7 +41,7 @@ const BudgetManager = () => {
         setNewBudget({category_id:'', budgeted_amount: ''})
         setShowAddBudget(false)
       })
-      .catch((err) => console.error('Failed to add budget:', err));
+      .catch((err) => console.error('Failed to add budget:', err))
    }
 
   return (
@@ -66,24 +66,29 @@ const BudgetManager = () => {
             <h5 className="card-title mb-3">Set New Budget</h5>
             <div className="row g-3">
               <div className="col-md-6">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Category name"
-                  value={newBudget.category}
+                <select
+                  className="form-select"
+                  value={newBudget.category_id}
                   onChange={(e) =>
-                    setNewBudget({ ...newBudget, category: e.target.value })
+                    setNewBudget({ ...newBudget, category_id: e.target.value })
                   }
-                />
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="col-md-6">
                 <input
                   type="number"
                   className="form-control"
-                  placeholder="Budget amount"
-                  value={newBudget.budgeted}
+                  placeholder="Budgeted amount"
+                  value={newBudget.budgeted_amount}
                   onChange={(e) =>
-                    setNewBudget({ ...newBudget, budgeted: e.target.value })
+                    setNewBudget({ ...newBudget, budgeted_amount: e.target.value })
                   }
                 />
               </div>
@@ -109,7 +114,7 @@ const BudgetManager = () => {
       {/* Budget Cards */}
       <div className="row row-cols-1 row-cols g-4">
         {budgets.map((budget) => {
-          const percentage = (budget.spent / budget.budgeted) * 100;
+          const percentage = (budget.spent_amount / budget.budgeted_amount) * 100;
           const isOverBudget = percentage > 100;
 
           return (
@@ -117,7 +122,7 @@ const BudgetManager = () => {
               <div className="card shadow-sm h-100">
                 <div className="card-body">
                   <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h5 className="card-title mb-0">{budget.category}</h5>
+                    <h5 className="card-title mb-0">{budget.category?.name}</h5>
                     <span
                       className={`badge ${
                         isOverBudget ? 'bg-danger' : 'bg-secondary'
@@ -129,8 +134,8 @@ const BudgetManager = () => {
 
                   <div className="mb-3">
                     <div className="d-flex justify-content-between text-muted small mb-1">
-                      <span>Spent: ${budget.spent.toFixed(2)}</span>
-                      <span>Budget: ${budget.budgeted.toFixed(2)}</span>
+                      <span>Spent: ${budget.spent_amount.toFixed(2)}</span>
+                      <span>Budget: ${budget.budgeted_amount.toFixed(2)}</span>
                     </div>
                     <div className="progress" style={{ height: '0.75rem' }}>
                       <div
@@ -152,7 +157,7 @@ const BudgetManager = () => {
                         isOverBudget ? 'text-danger' : 'text-success'
                       }`}
                     >
-                      ${(budget.budgeted - budget.spent).toFixed(2)} remaining
+                      ${(budget.budgeted_amount - budget.spent_amount).toFixed(2)} remaining
                     </p>
                   </div>
                 </div>
