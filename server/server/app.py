@@ -157,20 +157,68 @@ class Budgets(Resource):
         return response
     
     def post(self):
-
-        data = request.get_json()
-
-        budget = Budget(
-            user_id = g.user_id,
-            category_id = data['category_id'],
-            budgeted_amount = float(data['budgeted_amount'])
-
-        )
-
-        db.session.add(budget)
-        db.session.commit()
-
-        return make_response(budget.to_dict(), 201)
+        try:
+            data = request.get_json()
+            
+            # Add debug logging
+            print(f"Received data: {data}")
+            print(f"User ID from g: {g.user_id}")
+            
+            # Validation
+            if not data:
+                return {'error': 'No data provided'}, 400
+                
+            if 'category_id' not in data or not data['category_id']:
+                return {'error': 'category_id is required'}, 400
+                
+            if 'budgeted_amount' not in data or not data['budgeted_amount']:
+                return {'error': 'budgeted_amount is required'}, 400
+            
+            # Convert and validate data types
+            try:
+                category_id = int(data['category_id'])
+                budgeted_amount = float(data['budgeted_amount'])
+            except (ValueError, TypeError) as e:
+                return {'error': f'Invalid data format: {str(e)}'}, 400
+            
+            # Check if category exists
+            category = Category.query.get(category_id)
+            if not category:
+                return {'error': 'Category not found'}, 404
+            
+            # Check for existing budget for this user/category combination
+            existing_budget = Budget.query.filter_by(
+                user_id=g.user_id, 
+                category_id=category_id
+            ).first()
+            
+            if existing_budget:
+                return {'error': 'Budget already exists for this category'}, 409
+            
+            # Create new budget
+            budget = Budget(
+                user_id=g.user_id,
+                category_id=category_id,
+                budgeted_amount=budgeted_amount
+            )
+            
+            db.session.add(budget)
+            db.session.commit()
+            
+            # Return the created budget with all related data
+            return make_response(budget.to_dict(), 201)
+            
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error creating budget: {str(e)}")
+            
+            # Handle specific database constraint errors
+            if "UNIQUE constraint failed" in str(e):
+                return {'error': 'Budget already exists for this category'}, 409
+            elif "FOREIGN KEY constraint failed" in str(e):
+                return {'error': 'Invalid category or user reference'}, 400
+            else:
+                return {'error': f'Database error: {str(e)}'}, 500
 
 
 api.add_resource(Categories, '/categories')
