@@ -82,6 +82,9 @@ class Budget(db.Model):
     def validate_budgeted_amount(self, key, budget):
         if not budget or not budget.strip():
             raise ValueError("budgeted_amount is required and cannot be empty")
+        if budget <= 0:
+            raise ValueError("budgeted amount must be greater than 0")
+            
         return budget.strip()
 
     @property

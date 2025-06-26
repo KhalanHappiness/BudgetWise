@@ -98,6 +98,8 @@ def before_request_load_user():
 def hello():
     return "Hello, World!"
 
+
+
 class Budgets(Resource):
 
     def get(self):
@@ -117,5 +119,19 @@ class Budgets(Resource):
     def post(self):
 
         data = request.get_json()
+
+        budget = Budget(
+            user_id = g.user_id,
+            category_id = data['category_id'],
+            budgeted_amount = float(data['budgeted_Amount'])
+
+        )
+
+        db.session.add(budget)
+        db.session.commit()
+
+        return make_response(budget.to_dict(), 201)
+
+
     
 api.add_resource(Budgets, '/budgets')
