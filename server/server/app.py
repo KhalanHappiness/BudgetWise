@@ -333,6 +333,62 @@ class Bills(Resource):
          }
 
          return make_response(data, 200)
+    
+class PayBills(Resource):
+    def post (self, bill_id):
+
+        #Pay a bill and create next recurring bill
+        user_id = g.user_id
+
+        #Get the bill
+
+        bill = Bill.query.filter_by(id=bill_id, user_id=user_id).first()
+
+        if not bill:
+            return make_response({'error':'Bill not found'}, 404)
+        
+        if bill.status == 'paid':
+            return make_response(
+                {'error':'Bill already paid'}, 
+                400)
+        
+        #Get optional paid_date from request
+
+        data = request.get_json() or {}
+        paid_date =None
+
+        if paid_date in data:
+            try:
+                paid_date = datetime.strptime(data['paid_date'], '%Y-%m-%d').date()
+            except ValueError:
+                return make_response({'error': 'Invalid date format. Use YYYY-MM-DD'}, 400)
+            
+        try:
+            # Mark as paid and create next bill
+            payment, next_bill = bill.mark_paid_and_create_next(paid_date)
+            
+            db.session.commit()
+            
+            response = {
+                'message': 'Bill paid successfully',
+                'paid_bill': bill.to_dict(),
+                'payment_record': payment.to_dict()
+            }
+            
+            if next_bill:
+                response['next_bill'] = next_bill.to_dict()
+                response['message'] += f' and next {bill.recurring_type} bill created'
+            
+            return make_response(
+                response, 
+                200)
+        
+        except Exception as e:
+            db.session.rollback()
+            return make_response({'error': f'Payment failed: {str(e)}'}, 500)
+
+
+
             
     
 
@@ -349,3 +405,5 @@ api.add_resource(Budgets, '/budgets')
 api.add_resource(Expenses, '/expenses')
 
 api.add_resource(Bills, '/bills')
+
+api.add_resource(PayBills, '/bills/<int:bill_id>/pay')
