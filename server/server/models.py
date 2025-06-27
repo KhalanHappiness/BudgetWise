@@ -3,6 +3,7 @@ from sqlalchemy import MetaData, func
 from datetime import datetime, date
 from sqlalchemy.orm import validates
 from sqlalchemy import UniqueConstraint, Index
+
 import re
 
 # Define naming convention
@@ -192,6 +193,7 @@ class Category(db.Model):
         }
 
 class Bill(db.Model):
+
     __tablename__ = 'bills'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -263,17 +265,19 @@ class Bill(db.Model):
         return payment, next_bill
     
     def create_next_recurring_bill(self):
+        from datetime import timedelta
+
         #Create next bill when current one is paid
         if self.recurring_type == 'one-time':
             return None
         
         # Calculate next due date
         if self.recurring_type == 'monthly':
-            next_due = self.due_date + relativedelta(months=1)
+            next_due = self.due_date + timedelta(months=1)
         elif self.recurring_type == 'weekly':
-            next_due = self.due_date + relativedelta(weeks=1)
+            next_due = self.due_date + timedelta(weeks=1)
         elif self.recurring_type == 'yearly':
-            next_due = self.due_date + relativedelta(years=1)
+            next_due = self.due_date + timedelta(years=1)
         else:
             return None
         # Create new bill

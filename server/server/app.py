@@ -1,9 +1,8 @@
-from flask import Flask, jsonify, make_response, request,g
+from flask import Flask, jsonify, make_response, request, g
 from flask_cors import CORS
-from flask_restful import Api, Resource # Enfocing RESTFul principles
+from flask_restful import Api, Resource  # Enforcing RESTful principles
 from flask_migrate import Migrate
-from datetime import datetime
-
+from datetime import datetime, date
 import os
 
 from models import db, User, Budget, Bill, BillPayment, Expense, Reminder, Category
@@ -14,14 +13,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 
 # Initialize extensions
-
 CORS(app)
-
 migrate = Migrate(app, db)
-
 db.init_app(app)
-
-api = Api(app) # we link our flask app to flaks_restful
+api = Api(app)  # Link our Flask app to Flask-RESTful
 
 
 # --- Demo User Handling ---
@@ -29,12 +24,8 @@ api = Api(app) # we link our flask app to flaks_restful
 # Define demo user credentials (for creating if it doesn't exist)
 DEMO_USERNAME = "demo_budget_user"
 DEMO_EMAIL = "demo@budgetapp.com"
-DEMO_PASSWORD_HASH = "hashed_demo_password" # In a real app, this should be a properly hashed password
+DEMO_PASSWORD_HASH = "hashed_demo_password"  # In a real app, this should be a properly hashed password
 
-# Define demo user credentials (for creating if it doesn't exist)
-DEMO_USERNAME = "demo_budget_user"
-DEMO_EMAIL = "demo@budgetapp.com"
-DEMO_PASSWORD_HASH = "hashed_demo_password" # In a real app, this should be a properly hashed password
 
 def get_or_create_demo_user():
     """
@@ -44,30 +35,30 @@ def get_or_create_demo_user():
     If no users exist at all, it creates a new demo user.
     This function should be called within an application context.
     """
-    with app.app_context(): # Ensure we are in an app context for database operations
-        # 1. Try to find a user explicitly marked as a demo user
-        demo_user = User.query.filter_by(is_demo_user=True).first()
-        if demo_user:
-            print(f"Using existing demo user: {demo_user.username} (ID: {demo_user.id})")
-            return demo_user
+    # 1. Try to find a user explicitly marked as a demo user
+    demo_user = User.query.filter_by(is_demo_user=True).first()
+    if demo_user:
+        print(f"Using existing demo user: {demo_user.username} (ID: {demo_user.id})")
+        return demo_user
 
-        # 2. If no explicit demo user, try to find any existing user
-        any_user = User.query.first()
-        if any_user:
-            print(f"No explicit demo user found. Using first existing user: {any_user.username} (ID: {any_user.id})")
-            return any_user
+    # 2. If no explicit demo user, try to find any existing user
+    any_user = User.query.first()
+    if any_user:
+        print(f"No explicit demo user found. Using first existing user: {any_user.username} (ID: {any_user.id})")
+        return any_user
 
-        # 3. If no users at all, create a new demo user
-        print(f"No users found in database. Creating new demo user: {DEMO_USERNAME}")
-        new_demo_user = User(
-            username=DEMO_USERNAME,
-            email=DEMO_EMAIL,
-            password_hash=DEMO_PASSWORD_HASH,
-            is_demo_user=True
-        )
-        db.session.add(new_demo_user)
-        db.session.commit()
-        return new_demo_user
+    # 3. If no users at all, create a new demo user
+    print(f"No users found in database. Creating new demo user: {DEMO_USERNAME}")
+    new_demo_user = User(
+        username=DEMO_USERNAME,
+        email=DEMO_EMAIL,
+        password_hash=DEMO_PASSWORD_HASH,
+        is_demo_user=True
+    )
+    db.session.add(new_demo_user)
+    db.session.commit()
+    return new_demo_user
+
 
 @app.before_request
 def before_request_load_user():
@@ -93,7 +84,6 @@ def before_request_load_user():
         # This allows all endpoints to function without explicit login initially.
         demo_user = get_or_create_demo_user()
         g.user_id = demo_user.id
-   
 
 
 @app.route('/')
@@ -101,24 +91,16 @@ def hello():
     return "Hello, World!"
 
 
-
 class Categories(Resource):
     def get(self):
         categories = Category.query.order_by(Category.name).all()
-        
         categories_dict = [cat.to_dict() for cat in categories]
-
-        response = make_response(
-            categories_dict,   
-            200
-        )
-
-        return response
+        return make_response(categories_dict, 200)
 
     def post(self):
         data = request.get_json()
 
-        #validation
+        # Validation
         if not data or 'name' not in data:
             return {'error': 'name is required'}, 400
 
@@ -126,13 +108,11 @@ class Categories(Resource):
             category = Category(
                 name=data['name'], 
                 description=data.get('description')
-                )
+            )
             db.session.add(category)
             db.session.commit()
 
-            return make_response(
-                category.to_dict(), 
-                201)
+            return make_response(category.to_dict(), 201)
         
         except Exception as e:
             db.session.rollback()
@@ -143,20 +123,11 @@ class Categories(Resource):
 
 
 class Budgets(Resource):
-
     def get(self):
-
         user_id = g.user_id
-
         budgets = Budget.query.filter_by(user_id=user_id).all()
-
-        budget_Dict = [user.to_dict() for user in budgets]
-
-        response = make_response(
-            budget_Dict,
-            200)
-        
-        return response
+        budget_dict = [budget.to_dict() for budget in budgets]
+        return make_response(budget_dict, 200)
     
     def post(self):
         try:
@@ -221,11 +192,11 @@ class Budgets(Resource):
                 return {'error': 'Invalid category or user reference'}, 400
             else:
                 return {'error': f'Database error: {str(e)}'}, 500
-            
-class Expenses(Resource):
 
+
+class Expenses(Resource):
     def get(self):
-        #Get all expenses for the current user with optional filtering
+        # Get all expenses for the current user with optional filtering
         user_id = g.user_id
         category_id = request.args.get('category_id', type=int)
         start_date = request.args.get('start_date')
@@ -268,8 +239,7 @@ class Expenses(Resource):
         return make_response(data, 200)
     
     def post(self):
-        #Create a new expense for the current user
-
+        # Create a new expense for the current user
         data = request.get_json()
 
         required_fields = ['category_id', 'description', 'amount', 'expense_date']
@@ -282,82 +252,70 @@ class Expenses(Resource):
             expense_date = datetime.strptime(data['expense_date'], '%Y-%m-%d').date()
 
             expense = Expense(
-            user_id=g.user_id, 
-            category_id=data['category_id'],
-            description=data['description'],
-            amount=float(data['amount']),
-            expense_date=expense_date
+                user_id=g.user_id, 
+                category_id=data['category_id'],
+                description=data['description'],
+                amount=float(data['amount']),
+                expense_date=expense_date
             )
-
-            
             
             db.session.add(expense)
             db.session.commit()
 
-            return make_response(
-                expense.to_dict(),
-                201
-            )
+            return make_response(expense.to_dict(), 201)
+            
         except ValueError:
-            return make_response(
-                {'error':'Invalide date format'},
-                400)
+            return make_response({'error': 'Invalid date format'}, 400)
         except Exception as e:
             db.session.rollback()
-            return make_response(
-                {'error':str(e)},
-                500)
-        
-class Bills(Resource):
+            return make_response({'error': str(e)}, 500)
 
+
+class Bills(Resource):
     def get(self):
-         #Get all bills for the current user with optional filtering
-         user_id = g.user_id 
-         status = request.args.get('status')  # paid, overdue, upcoming
-         category = request.args.get('category')
+        # Get all bills for the current user with optional filtering
+        user_id = g.user_id 
+        status = request.args.get('status')  # paid, overdue, upcoming
+        category = request.args.get('category')
         
-         query = Bill.query.filter_by(user_id=user_id)
+        query = Bill.query.filter_by(user_id=user_id)
         
-         if category:
+        if category:
             query = query.filter_by(category=category)
         
-         bills = query.order_by(Bill.due_date.asc()).all()
+        bills = query.order_by(Bill.due_date.asc()).all()
         
         # Filter by status if specified
-         if status:
+        if status:
             bills = [bill for bill in bills if bill.status == status]
         
-         data ={
+        data = {
             'bills': [bill.to_dict() for bill in bills],
             'count': len(bills)
-         }
+        }
 
-         return make_response(data, 200)
-    
+        return make_response(data, 200)
+
+
 class PayBills(Resource):
-    def post (self, bill_id):
-
-        #Pay a bill and create next recurring bill
+    def post(self, bill_id):
+        # Pay a bill and create next recurring bill
         user_id = g.user_id
 
-        #Get the bill
-
+        # Get the bill
         bill = Bill.query.filter_by(id=bill_id, user_id=user_id).first()
 
         if not bill:
-            return make_response({'error':'Bill not found'}, 404)
+            return make_response({'error': 'Bill not found'}, 404)
         
         if bill.status == 'paid':
-            return make_response(
-                {'error':'Bill already paid'}, 
-                400)
+            return make_response({'error': 'Bill already paid'}, 400)
         
-        #Get optional paid_date from request
-
+        # Get optional paid_date from request
         data = request.get_json() or {}
-        paid_date =None
+        paid_date = None
 
-        if paid_date in data:
+        if 'paid_date' in data:  # Fixed variable name check
             try:
                 paid_date = datetime.strptime(data['paid_date'], '%Y-%m-%d').date()
             except ValueError:
@@ -379,31 +337,45 @@ class PayBills(Resource):
                 response['next_bill'] = next_bill.to_dict()
                 response['message'] += f' and next {bill.recurring_type} bill created'
             
-            return make_response(
-                response, 
-                200)
+            return make_response(response, 200)
         
         except Exception as e:
             db.session.rollback()
             return make_response({'error': f'Payment failed: {str(e)}'}, 500)
 
 
+class BillPayments(Resource):
+    def get(self):
+        # Get all the bill payment history for the current user
+        user_id = g.user_id
 
-            
-    
+        payments = BillPayment.query.filter_by(user_id=user_id).order_by(BillPayment.paid_date.desc()).all()
+
+        total_amount = sum(float(payment.amount) for payment in payments)
+
+        late_payments = [p for p in payments if p.was_paid_late]
+
+        data = {
+            'payments': [payment.to_dict() for payment in payments],
+            'summary': {
+                'count': len(payments),
+                'total_amount': total_amount,
+                'late_payments': len(late_payments),
+                'average_amount': round(total_amount / len(payments), 2) if payments else 0
+            }
+        }
+        
+        return make_response(data, 200)
 
 
-
-
-
-
-
+# Add resources to API
 api.add_resource(Categories, '/categories')
-   
 api.add_resource(Budgets, '/budgets')
-
 api.add_resource(Expenses, '/expenses')
-
 api.add_resource(Bills, '/bills')
-
 api.add_resource(PayBills, '/bills/<int:bill_id>/pay')
+api.add_resource(BillPayments, '/billpayments')
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
