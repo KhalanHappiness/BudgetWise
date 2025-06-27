@@ -161,7 +161,7 @@ class Expense(db.Model):
         return {
             'id': self.id,
             'user_id': self.user_id,
-            'category': self.category.to_dict() if self.category else None,
+            'category_id': self.category.to_dict() if self.category else None,
             'description': self.description,
             'amount': float(self.amount),
             'expense_date': self.expense_date.isoformat(),

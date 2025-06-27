@@ -88,10 +88,15 @@ const ExpenseTracker = () => {
   }, []);
 
   // Get category name by ID
-  const getCategoryName = (category_id) => {
-    const category = categories.find(cat => cat.id === category_id);
-    return category ? category.name : 'Unknown';
-  };
+  const getCategoryName = (categoryId) => {
+  console.log('Looking for categoryId:', categoryId, 'Type:', typeof categoryId);
+  console.log('Available categories:', categories.map(cat => ({id: cat.id, type: typeof cat.id, name: cat.name})));
+  
+  const category = categories.find(cat => Number(cat.id) === Number(categoryId));
+  console.log('Found category:', category);
+  
+  return category ? category.name : 'Unknown';
+};
 
   // Manual fetch expenses function for filters
   const fetchExpensesManually = () => {
@@ -203,7 +208,7 @@ const ExpenseTracker = () => {
       end_date: '',
       limit: ''
     });
-    // Use setTimeout to ensure state is updated before fetching
+    //ensures state is updated before fetching
     setTimeout(() => fetchExpensesManually(), 0);
   };
 
