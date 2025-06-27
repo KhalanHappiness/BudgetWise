@@ -2,6 +2,8 @@ from flask import Flask, jsonify, make_response, request,g
 from flask_cors import CORS
 from flask_restful import Api, Resource # Enfocing RESTFul principles
 from flask_migrate import Migrate
+from datetime import datetime
+
 import os
 
 from models import db, User, Budget, Bill, BillPayment, Expense, Reminder, Category
@@ -219,8 +221,57 @@ class Budgets(Resource):
                 return {'error': 'Invalid category or user reference'}, 400
             else:
                 return {'error': f'Database error: {str(e)}'}, 500
+            
+class Expenses(Resource):
+
+    def get(self):
+        #Get all expenses for the current user with optional filtering
+        user_id = g.user_id
+        category_id = request.args.get('category_id', type=int)
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        limit = request.args.get('limit', type=int)
+
+        query = Expense.query.filter_by(user_id=user_id)
+
+        if category_id:
+            query = query.filter_by(category_id=category_id)
+
+        if start_date:
+            try:
+                start = datetime.strptime(start_date, '%Y-%m-%d').date()
+                query = query.filter(Expense.expense_date >= start)
+            except ValueError:
+                return make_response({'error': 'Invalid start_date format. Use YYYY-MM-DD'}, 400)
+
+        if end_date:
+            try:
+                end = datetime.strptime(end_date, '%Y-%m-%d').date()
+                query = query.filter(Expense.expense_date <= end)
+            except ValueError:
+                return make_response({'error': 'Invalid end_date format. Use YYYY-MM-DD'}, 400)
+
+        query = query.order_by(Expense.expense_date.desc())
+
+        if limit:
+            query = query.limit(limit)
+
+        expenses = query.all()
+        total_amount = sum(float(exp.amount) for exp in expenses)
+
+        data = {
+            'expenses': [exp.to_dict() for exp in expenses],
+            'count': len(expenses),
+            'total_amount': total_amount
+        }
+
+        return make_response(data, 200)
+
+
 
 
 api.add_resource(Categories, '/categories')
    
 api.add_resource(Budgets, '/budgets')
+
+api.add_resource(Expenses, '/expenses')
