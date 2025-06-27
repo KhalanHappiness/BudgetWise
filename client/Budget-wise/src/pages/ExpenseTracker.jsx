@@ -51,7 +51,18 @@ const ExpenseTracker = () => {
 
   // Fetch expenses from API
   useEffect(()=>{
-    const 
+    const fetchExpenses = () => {
+      setLoading(true)
+      setError('')
+
+      //Build query parameters
+      const params = new URLSearchParams()
+      if (filters.category_id) params.append('category_id', filters.category_id)
+      if (filters.start_date) params.append('start_date', filters.start_date)
+      if (filters.end_date) params.append('end_date', filters.end_date)
+      if (filters.limit) params.append('limit', filters.limit)
+
+    }
   })
 
       // Apply filters to mock data
