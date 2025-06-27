@@ -62,8 +62,32 @@ const ExpenseTracker = () => {
       if (filters.end_date) params.append('end_date', filters.end_date)
       if (filters.limit) params.append('limit', filters.limit)
 
+      fetch('http://127.0.0.1:5000/expenses?${params}')
+      .then((res) => {
+        if(!res.ok){
+          throw new Error(`HTTP error! status: ${res.status}`)
+        }
+        return res.json()
+      })
+      .then((data)=>{
+        setExpenses(data.expenses)
+        setTotalAmount(data.total_amount)
+        setExpenseCount(data.count)
+      })
+      .catch((err) => {
+          console.error('Error fetching expenses:', err)
+          setError(`Failed to load expenses: ${err.message}`)
+          setExpenses([])
+          setTotalAmount(0)
+          setExpenseCount(0)
+      })
+      .finally(()=>{
+        setLoading(false)
+      })
+
     }
-  })
+    fetchExpenses()
+  }, [])
 
       // Apply filters to mock data
       let filteredExpenses = mockApiResponse.expenses;
