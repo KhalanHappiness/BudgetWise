@@ -88,14 +88,20 @@ const ExpenseTracker = () => {
   }, []);
 
   // Get category name by ID
-  const getCategoryName = (categoryId) => {
-  console.log('Looking for categoryId:', categoryId, 'Type:', typeof categoryId);
-  console.log('Available categories:', categories.map(cat => ({id: cat.id, type: typeof cat.id, name: cat.name})));
+  const getCategoryName = (categoryData) => {
+  // If categoryData is already a category object with a name, return it directly
+  if (categoryData && typeof categoryData === 'object' && categoryData.name) {
+    return categoryData.name;
+  }
   
-  const category = categories.find(cat => Number(cat.id) === Number(categoryId));
-  console.log('Found category:', category);
+  // If categoryData is just an ID, look it up in the categories array
+  if (categoryData && (typeof categoryData === 'string' || typeof categoryData === 'number')) {
+    const category = categories.find(cat => Number(cat.id) === Number(categoryData));
+    return category ? category.name : 'Unknown';
+  }
   
-  return category ? category.name : 'Unknown';
+  // If categoryData is null, undefined, or empty
+  return 'Unknown';
 };
 
   // Manual fetch expenses function for filters
@@ -228,7 +234,7 @@ const ExpenseTracker = () => {
   };
 
   return (
-    <div className="container-fluid py-4">
+    <div className="container-fluid ">
       {/* Error Alert */}
       {error && (
         <div className="alert alert-danger alert-dismissible fade show" role="alert">
@@ -244,7 +250,7 @@ const ExpenseTracker = () => {
 
       {/* Header with Actions */}
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h4 className="fw-bold text-primary">💰 Expense Tracker</h4>
+        <h4 className="mb-0">Expense Tracker</h4>
         <div className="d-flex gap-2">
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -263,7 +269,7 @@ const ExpenseTracker = () => {
         </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* Summary Cards
       <div className="row mb-4">
         <div className="col-md-4">
           <div className="card border-0 shadow-sm bg-success text-white">
@@ -306,7 +312,7 @@ const ExpenseTracker = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Filters Panel */}
       {showFilters && (
