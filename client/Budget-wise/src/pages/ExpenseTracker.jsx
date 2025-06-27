@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 
 const ExpenseTracker = () => {
   // State for expenses and loading
-  const [expenses, setExpenses] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [totalAmount, setTotalAmount] = useState(0)
-  const [expenseCount, setExpenseCount] = useState(0)
-  const [error, setError] = useState('')
+  const [expenses, setExpenses] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [expenseCount, setExpenseCount] = useState(0);
+  const [error, setError] = useState('');
 
   // Categories state
-  const [categories, setCategories] = useState([])
+  const [categories, setCategories] = useState([]);
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -17,175 +17,182 @@ const ExpenseTracker = () => {
     start_date: '',
     end_date: '',
     limit: ''
-  })
+  });
 
-  //UI states
-
+  // UI states
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [addingExpense, setAddingExpense] = useState(false)
-
+  const [addingExpense, setAddingExpense] = useState(false);
+  
   const [newExpense, setNewExpense] = useState({
     description: '', 
     amount: '', 
     category_id: '', 
-    date: new Date().toISOString().split('T')[0]
+    expense_date: new Date().toISOString().split('T')[0]
   });
 
-  //fetch categories for drop down
-
- useEffect(() => {
-     fetch('http://127.0.0.1:5000/categories')
-       .then((res) => {
-         if (!res.ok) {
-           throw new Error(`HTTP error! status: ${res.status}`)
-         }
-         return res.json();
-       })
-       .then((data) => setCategories(data))
-       .catch((err) => {
-         console.error('Error fetching categories:', err)
-         setError('Failed to load categories');
-       })
-   }, [])
-
-  // Fetch expenses from API
-  useEffect(()=>{
-    const fetchExpenses = () => {
-      setLoading(true)
-      setError('')
-
-      //Build query parameters
-      const params = new URLSearchParams()
-      if (filters.category_id) params.append('category_id', filters.category_id)
-      if (filters.start_date) params.append('start_date', filters.start_date)
-      if (filters.end_date) params.append('end_date', filters.end_date)
-      if (filters.limit) params.append('limit', filters.limit)
-
-      fetch('http://127.0.0.1:5000/expenses?${params}')
+  // Fetch categories using useEffect with .then format
+  useEffect(() => {
+    fetch('http://127.0.0.1:5000/categories')
       .then((res) => {
-        if(!res.ok){
-          throw new Error(`HTTP error! status: ${res.status}`)
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
         }
-        return res.json()
+        return res.json();
       })
-      .then((data)=>{
-        setExpenses(data.expenses)
-        setTotalAmount(data.total_amount)
-        setExpenseCount(data.count)
-      })
+      .then((data) => setCategories(data))
       .catch((err) => {
-          console.error('Error fetching expenses:', err)
-          setError(`Failed to load expenses: ${err.message}`)
-          setExpenses([])
-          setTotalAmount(0)
-          setExpenseCount(0)
-      })
-      .finally(()=>{
-        setLoading(false)
-      })
+        console.error('Error fetching categories:', err);
+        setError('Failed to load categories');
+      });
+  }, []);
 
-    }
-    fetchExpenses()
-  }, [])
+  // Fetch expenses using useEffect with .then format
+  useEffect(() => {
+    const fetchExpenses = () => {
+      setLoading(true);
+      setError('');
+      
+      // Build query parameters
+      const params = new URLSearchParams();
+      if (filters.category_id) params.append('category_id', filters.category_id);
+      if (filters.start_date) params.append('start_date', filters.start_date);
+      if (filters.end_date) params.append('end_date', filters.end_date);
+      if (filters.limit) params.append('limit', filters.limit);
 
-   // Get category name by ID
-  const getCategoryName = (categoryId) => {
-    const category = categories.find(cat => cat.id === categoryId)
-    return category ? category.name : 'Unknown'
-  }
+      fetch(`http://127.0.0.1:5000/expenses?${params}`)
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then((data) => {
+          setExpenses(data.expenses);
+          setTotalAmount(data.total_amount);
+          setExpenseCount(data.count);
+        })
+        .catch((err) => {
+          console.error('Error fetching expenses:', err);
+          setError(`Failed to load expenses: ${err.message}`);
+          setExpenses([]);
+          setTotalAmount(0);
+          setExpenseCount(0);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    };
+
+    fetchExpenses();
+  }, []);
+
+  // Get category name by ID
+  const getCategoryName = (category_id) => {
+    const category = categories.find(cat => cat.id === category_id);
+    return category ? category.name : 'Unknown';
+  };
 
   // Manual fetch expenses function for filters
   const fetchExpensesManually = () => {
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError('');
     
     // Build query parameters
-    const params = new URLSearchParams()
-    if (filters.category_id) params.append('category_id', filters.category_id)
-    if (filters.start_date) params.append('start_date', filters.start_date)
-    if (filters.end_date) params.append('end_date', filters.end_date)
-    if (filters.limit) params.append('limit', filters.limit)
+    const params = new URLSearchParams();
+    if (filters.category_id) params.append('category_id', filters.category_id);
+    if (filters.start_date) params.append('start_date', filters.start_date);
+    if (filters.end_date) params.append('end_date', filters.end_date);
+    if (filters.limit) params.append('limit', filters.limit);
 
     fetch(`http://127.0.0.1:5000/expenses?${params}`)
       .then((res) => {
         if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`)
+          throw new Error(`HTTP error! status: ${res.status}`);
         }
-        return res.json()
+        return res.json();
       })
       .then((data) => {
-        setExpenses(data.expenses)
-        setTotalAmount(data.total_amount)
-        setExpenseCount(data.count)
+        setExpenses(data.expenses);
+        setTotalAmount(data.total_amount);
+        setExpenseCount(data.count);
       })
       .catch((err) => {
-        console.error('Error fetching expenses:', err)
-        setError(`Failed to load expenses: ${err.message}`)
-        setExpenses([])
-        setTotalAmount(0)
-        setExpenseCount(0)
+        console.error('Error fetching expenses:', err);
+        setError(`Failed to load expenses: ${err.message}`);
+        setExpenses([]);
+        setTotalAmount(0);
+        setExpenseCount(0);
       })
       .finally(() => {
-        setLoading(false)
+        setLoading(false);
+      });
+  };
+
+  // Add expense using .then format
+  const addExpense = () => {
+    if (!newExpense.description || !newExpense.amount || !newExpense.category_id) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    setAddingExpense(true);
+    setError('');
+
+    // Prepare data
+    const expenseData = {
+      description: newExpense.description.trim(),
+      amount: parseFloat(newExpense.amount),
+      category_id: parseInt(newExpense.category_id),
+      expense_date: newExpense.expense_date
+    };
+
+    // Validate amount is positive
+    if (expenseData.amount <= 0) {
+      setError('Amount must be positive');
+      setAddingExpense(false);
+      return;
+    }
+
+    fetch('http://127.0.0.1:5000/expenses', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(expenseData)
+    })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then(errorData => {
+            throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+          });
+        }
+        return res.json();
       })
-  }
-
-  // Load expenses on component mount and when filters change
-  useEffect(() => {
-    fetchExpenses();
-  }, []);
-
-  const addExpense = async () => {
-    if (newExpense.description && newExpense.amount && newExpense.category) {
-      try {
-        // In a real app, this would POST to your API
-        // const response = await fetch('/api/expenses', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({
-        //     description: newExpense.description,
-        //     amount: parseFloat(newExpense.amount),
-        //     category_id: categories.find(c => c.name === newExpense.category)?.id,
-        //     expense_date: newExpense.date
-        //   })
-        // });
-
-        // For demo, just add to local state
-        const expense = {
-          id: Date.now(),
-          ...newExpense,
-          amount: parseFloat(newExpense.amount),
-          expense_date: newExpense.date,
-          category_id: categories.find(c => c.name === newExpense.category)?.id || 6
-        };
-        
-        setExpenses([expense, ...expenses]);
-        setTotalAmount(totalAmount + parseFloat(newExpense.amount));
-        setExpenseCount(expenseCount + 1);
-        
-        setBudgets(budgets.map(budget => 
-          budget.category === newExpense.category 
-            ? { ...budget, spent: budget.spent + parseFloat(newExpense.amount) }
-            : budget
-        ));
-        
+      .then((createdExpense) => {
+        // Reset form and close modal
         setNewExpense({ 
           description: '', 
           amount: '', 
-          category: '', 
-          date: new Date().toISOString().split('T')[0] 
+          category_id: '', 
+          expense_date: new Date().toISOString().split('T')[0] 
         });
         setShowAddExpense(false);
-
-      } catch (error) {
-        console.error('Error adding expense:', error);
-      }
-    }
+        
+        // Refresh the expenses list
+        fetchExpensesManually();
+      })
+      .catch((err) => {
+        console.error('Error adding expense:', err);
+        setError(`Failed to add expense: ${err.message}`);
+      })
+      .finally(() => {
+        setAddingExpense(false);
+      });
   };
 
   const applyFilters = () => {
-    fetchExpenses();
+    fetchExpensesManually();
     setShowFilters(false);
   };
 
@@ -196,7 +203,8 @@ const ExpenseTracker = () => {
       end_date: '',
       limit: ''
     });
-    setTimeout(() => fetchExpenses(), 0);
+    // Use setTimeout to ensure state is updated before fetching
+    setTimeout(() => fetchExpensesManually(), 0);
   };
 
   const formatCurrency = (amount) => {
@@ -206,15 +214,36 @@ const ExpenseTracker = () => {
     }).format(amount);
   };
 
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
   return (
     <div className="container-fluid py-4">
+      {/* Error Alert */}
+      {error && (
+        <div className="alert alert-danger alert-dismissible fade show" role="alert">
+          <i className="bi bi-exclamation-triangle-fill me-2"></i>
+          {error}
+          <button 
+            type="button" 
+            className="btn-close" 
+            onClick={() => setError('')}
+          ></button>
+        </div>
+      )}
+
       {/* Header with Actions */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="fw-bold text-primary">💰 Expense Tracker</h4>
         <div className="d-flex gap-2">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="btn btn-outline-primary d-flex align-items-center"
+            className={`btn ${showFilters ? 'btn-primary' : 'btn-outline-primary'} d-flex align-items-center`}
           >
             <i className="bi bi-funnel me-2"></i>
             Filters
@@ -324,14 +353,30 @@ const ExpenseTracker = () => {
                   <option value="10">10 items</option>
                   <option value="25">25 items</option>
                   <option value="50">50 items</option>
+                  <option value="100">100 items</option>
                 </select>
               </div>
             </div>
             <div className="d-flex gap-2 mt-3">
-              <button onClick={applyFilters} className="btn btn-primary">
-                Apply Filters
+              <button 
+                onClick={applyFilters} 
+                className="btn btn-primary"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                    Loading...
+                  </>
+                ) : (
+                  'Apply Filters'
+                )}
               </button>
-              <button onClick={clearFilters} className="btn btn-outline-secondary">
+              <button 
+                onClick={clearFilters} 
+                className="btn btn-outline-secondary"
+                disabled={loading}
+              >
                 Clear All
               </button>
             </div>
@@ -346,59 +391,78 @@ const ExpenseTracker = () => {
             <h5 className="card-title">➕ Add New Expense</h5>
             <div className="row g-3">
               <div className="col-md-6">
-                <label className="form-label">Description</label>
+                <label className="form-label">Description *</label>
                 <input
                   type="text"
                   placeholder="Enter description"
                   className="form-control"
                   value={newExpense.description}
                   onChange={(e) => setNewExpense({...newExpense, description: e.target.value})}
+                  disabled={addingExpense}
                 />
               </div>
               <div className="col-md-6">
-                <label className="form-label">Amount</label>
+                <label className="form-label">Amount *</label>
                 <input
                   type="number"
                   placeholder="0.00"
                   className="form-control"
                   step="0.01"
+                  min="0.01"
                   value={newExpense.amount}
                   onChange={(e) => setNewExpense({...newExpense, amount: e.target.value})}
+                  disabled={addingExpense}
                 />
               </div>
               <div className="col-md-6">
-                <label className="form-label">Category</label>
+                <label className="form-label">Category *</label>
                 <select
                   className="form-select"
-                  value={newExpense.category}
-                  onChange={(e) => setNewExpense({...newExpense, category: e.target.value})}
+                  value={newExpense.category_id}
+                  onChange={(e) => setNewExpense({...newExpense, category_id: e.target.value})}
+                  disabled={addingExpense}
                 >
                   <option value="">Select Category</option>
                   {categories.map(category => (
-                    <option key={category.id} value={category.name}>
+                    <option key={category.id} value={category.id}>
                       {category.name}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="col-md-6">
-                <label className="form-label">Date</label>
+                <label className="form-label">Date *</label>
                 <input
                   type="date"
                   className="form-control"
-                  value={newExpense.date}
-                  onChange={(e) => setNewExpense({...newExpense, date: e.target.value})}
+                  value={newExpense.expense_date}
+                  onChange={(e) => setNewExpense({...newExpense, expense_date: e.target.value})}
+                  disabled={addingExpense}
                 />
               </div>
             </div>
             <div className="d-flex gap-2 mt-3">
-              <button onClick={addExpense} className="btn btn-success">
-                <i className="bi bi-check-circle me-2"></i>
-                Add Expense
+              <button 
+                onClick={addExpense} 
+                className="btn btn-success"
+                disabled={addingExpense}
+              >
+                {addingExpense ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-check-circle me-2"></i>
+                    Add Expense
+                  </>
+                )}
               </button>
               <button
                 onClick={() => setShowAddExpense(false)}
                 className="btn btn-secondary"
+                disabled={addingExpense}
               >
                 Cancel
               </button>
@@ -412,7 +476,11 @@ const ExpenseTracker = () => {
         <div className="card-body">
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h5 className="card-title mb-0">📋 Recent Expenses</h5>
-            {loading && <div className="spinner-border spinner-border-sm" role="status"></div>}
+            {loading && (
+              <div className="spinner-border spinner-border-sm" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            )}
           </div>
           
           {loading ? (
@@ -420,12 +488,18 @@ const ExpenseTracker = () => {
               <div className="spinner-border" role="status">
                 <span className="visually-hidden">Loading...</span>
               </div>
+              <p className="mt-2 text-muted">Loading expenses...</p>
             </div>
           ) : expenses.length === 0 ? (
             <div className="text-center py-5 text-muted">
               <i className="bi bi-inbox fs-1 mb-3 d-block"></i>
               <h6>No expenses found</h6>
-              <p className="mb-0">Try adjusting your filters or add some expenses</p>
+              <p className="mb-0">
+                {Object.values(filters).some(f => f) 
+                  ? 'Try adjusting your filters or add some expenses'
+                  : 'Add your first expense to get started'
+                }
+              </p>
             </div>
           ) : (
             <div className="d-flex flex-column gap-3">
@@ -434,15 +508,13 @@ const ExpenseTracker = () => {
                   <div className="flex-grow-1">
                     <div className="d-flex align-items-center gap-2 mb-1">
                       <h6 className="mb-0 fw-medium">{expense.description}</h6>
-                      <span className="badge bg-secondary rounded-pill">{expense.category}</span>
+                      <span className="badge bg-secondary rounded-pill">
+                        {getCategoryName(expense.category_id)}
+                      </span>
                     </div>
                     <small className="text-muted">
                       <i className="bi bi-calendar3 me-1"></i>
-                      {new Date(expense.expense_date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                      })}
+                      {formatDate(expense.expense_date)}
                     </small>
                   </div>
                   <div className="text-end">

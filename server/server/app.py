@@ -289,8 +289,7 @@ class Expenses(Resource):
             expense_date=expense_date
             )
 
-            if not expense.validate_amount():
-                return make_response({'error': 'Amount must be positive'}, 400)
+            
             
             db.session.add(expense)
             db.session.commit()

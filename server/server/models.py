@@ -151,7 +151,7 @@ class Expense(db.Model):
     def __repr__(self):
         return f'<Expense {self.description}: ${self.amount}>'
     
-    @validates (amount)
+    @validates ('amount')
     def validate_amount(self, key, amount):
         if amount <= 0:
             raise ValueError("Amount must be greater than zero")
