@@ -236,8 +236,8 @@ class Bill(db.Model):
         #Days until due date (negative if overdue)
         return (self.due_date - date.today()).days
 
-    def mark_paid(self, paid_date=None):
-        #Mark bill as paid and create payment record
+    def mark_paid_and_create_next(self, paid_date=None):
+        #Mark bill as paid and create payment record, and create the next bill
         payment_date = paid_date or date.today()
         self.paid_date = payment_date
         
@@ -253,9 +253,41 @@ class Bill(db.Model):
         )
         db.session.add(payment)
 
-    def validate_amount(self):
-        #Ensure amount is positive
-        return self.amount > 0
+        #create the next recurring bill
+        next_bill = None
+        if self.recurring_type != 'one-time':
+            next_bill = self.create_next_recurring_bill()
+            if next_bill:
+                db.session.add(next_bill)
+
+        return payment, next_bill
+    
+    def create_next_recurring_bill(self):
+        #Create next bill when current one is paid
+        if self.recurring_type == 'one-time':
+            return None
+        
+        # Calculate next due date
+        if self.recurring_type == 'monthly':
+            next_due = self.due_date + relativedelta(months=1)
+        elif self.recurring_type == 'weekly':
+            next_due = self.due_date + relativedelta(weeks=1)
+        elif self.recurring_type == 'yearly':
+            next_due = self.due_date + relativedelta(years=1)
+        else:
+            return None
+        # Create new bill
+        new_bill = Bill(
+            user_id=self.user_id,
+            name=self.name,
+            amount=self.amount,
+            category=self.category,
+            due_date=next_due,
+            recurring_type=self.recurring_type
+        )
+        
+        return new_bill
+
 
     def to_dict(self):
         return {

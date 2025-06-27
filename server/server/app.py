@@ -311,8 +311,8 @@ class Expenses(Resource):
 class Bills(Resource):
 
     def get(self):
-         """Get all bills for the current user with optional filtering"""
-         user_id = g.user_id # Use user_id from g object
+         #Get all bills for the current user with optional filtering
+         user_id = g.user_id 
          status = request.args.get('status')  # paid, overdue, upcoming
          category = request.args.get('category')
         
