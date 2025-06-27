@@ -307,6 +307,37 @@ class Expenses(Resource):
             return make_response(
                 {'error':str(e)},
                 500)
+        
+class Bills(Resource):
+
+    def get(self):
+         """Get all bills for the current user with optional filtering"""
+         user_id = g.user_id # Use user_id from g object
+         status = request.args.get('status')  # paid, overdue, upcoming
+         category = request.args.get('category')
+        
+         query = Bill.query.filter_by(user_id=user_id)
+        
+         if category:
+            query = query.filter_by(category=category)
+        
+         bills = query.order_by(Bill.due_date.asc()).all()
+        
+        # Filter by status if specified
+         if status:
+            bills = [bill for bill in bills if bill.status == status]
+        
+         data ={
+            'bills': [bill.to_dict() for bill in bills],
+            'count': len(bills)
+         }
+
+         return make_response(data, 200)
+            
+    
+
+
+
 
 
 
@@ -316,3 +347,5 @@ api.add_resource(Categories, '/categories')
 api.add_resource(Budgets, '/budgets')
 
 api.add_resource(Expenses, '/expenses')
+
+api.add_resource(Bills, '/bills')
