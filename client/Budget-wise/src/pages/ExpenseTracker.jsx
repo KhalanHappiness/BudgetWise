@@ -2,10 +2,14 @@ import React, { useState, useEffect } from 'react';
 
 const ExpenseTracker = () => {
   // State for expenses and loading
-  const [expenses, setExpenses] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [expenseCount, setExpenseCount] = useState(0);
+  const [expenses, setExpenses] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [totalAmount, setTotalAmount] = useState(0)
+  const [expenseCount, setExpenseCount] = useState(0)
+  const [error, setError] = useState('')
+
+  // Categories state
+  const [categories, setCategories] = useState([])
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -13,99 +17,42 @@ const ExpenseTracker = () => {
     start_date: '',
     end_date: '',
     limit: ''
-  });
+  })
 
-  // Hardcoded budgets data (can be moved to API later)
-  const [budgets, setBudgets] = useState([
-    { category: 'Groceries', budget: 300, spent: 0 },
-    { category: 'Utilities', budget: 200, spent: 0 },
-    { category: 'Entertainment', budget: 100, spent: 0 },
-    { category: 'Transportation', budget: 150, spent: 0 },
-    { category: 'Healthcare', budget: 200, spent: 0 },
-    { category: 'Other', budget: 100, spent: 0 }
-  ]);
+  //UI states
 
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [addingExpense, setAddingExpense] = useState(false)
+
   const [newExpense, setNewExpense] = useState({
     description: '', 
     amount: '', 
-    category: '', 
+    category_id: '', 
     date: new Date().toISOString().split('T')[0]
   });
 
-  // Categories for dropdowns
-  const categories = [
-    { id: 1, name: 'Groceries' },
-    { id: 2, name: 'Utilities' },
-    { id: 3, name: 'Entertainment' },
-    { id: 4, name: 'Transportation' },
-    { id: 5, name: 'Healthcare' },
-    { id: 6, name: 'Other' }
-  ];
+  //fetch categories for drop down
+
+ useEffect(() => {
+     fetch('http://127.0.0.1:5000/categories')
+       .then((res) => {
+         if (!res.ok) {
+           throw new Error(`HTTP error! status: ${res.status}`);
+         }
+         return res.json();
+       })
+       .then((data) => setCategories(data))
+       .catch((err) => {
+         console.error('Error fetching categories:', err);
+         setError('Failed to load categories');
+       });
+   }, []);
 
   // Fetch expenses from API
-  const fetchExpenses = async () => {
-    setLoading(true);
-    try {
-      // Build query parameters
-      const params = new URLSearchParams();
-      if (filters.category_id) params.append('category_id', filters.category_id);
-      if (filters.start_date) params.append('start_date', filters.start_date);
-      if (filters.end_date) params.append('end_date', filters.end_date);
-      if (filters.limit) params.append('limit', filters.limit);
-
-      // In a real app, this would be your actual API endpoint
-      // const response = await fetch(`/api/expenses?${params}`);
-      // const data = await response.json();
-      
-      // For demo purposes, using mock data that matches your API response format
-      const mockApiResponse = {
-        expenses: [
-          {
-            id: 1,
-            description: 'Grocery Shopping',
-            amount: 85.50,
-            category: 'Groceries',
-            expense_date: '2024-06-20',
-            category_id: 1
-          },
-          {
-            id: 2,
-            description: 'Electric Bill',
-            amount: 120.00,
-            category: 'Utilities',
-            expense_date: '2024-06-19',
-            category_id: 2
-          },
-          {
-            id: 3,
-            description: 'Movie Tickets',
-            amount: 24.99,
-            category: 'Entertainment',
-            expense_date: '2024-06-18',
-            category_id: 3
-          },
-          {
-            id: 4,
-            description: 'Gas Station',
-            amount: 45.00,
-            category: 'Transportation',
-            expense_date: '2024-06-17',
-            category_id: 4
-          },
-          {
-            id: 5,
-            description: 'Coffee Shop',
-            amount: 12.75,
-            category: 'Groceries',
-            expense_date: '2024-06-16',
-            category_id: 1
-          }
-        ],
-        count: 5,
-        total_amount: 288.24
-      };
+  useEffect(()=>{
+    const 
+  })
 
       // Apply filters to mock data
       let filteredExpenses = mockApiResponse.expenses;

@@ -266,6 +266,48 @@ class Expenses(Resource):
         }
 
         return make_response(data, 200)
+    
+    def post(self):
+        #Create a new expense for the current user
+
+        data = request.get_json()
+
+        required_fields = ['category_id', 'description', 'amount', 'expense_date']
+
+        for field in required_fields:
+            if field not in data:
+                return make_response({'error': f'{field} is required'}, 400)
+            
+        try:
+            expense_date = datetime.strptime(data['expense_date'], '%Y-%m-%d').date()
+
+            expense = Expense(
+            user_id=g.user_id, 
+            category_id=data['category_id'],
+            description=data['description'],
+            amount=float(data['amount']),
+            expense_date=expense_date
+            )
+
+            if not expense.validate_amount():
+                return make_response({'error': 'Amount must be positive'}, 400)
+            
+            db.session.add(expense)
+            db.session.commit()
+
+            return make_response(
+                expense.to_dict(),
+                201
+            )
+        except ValueError:
+            return make_response(
+                {'error':'Invalide date format'},
+                400)
+        except Exception as e:
+            db.session.rollback()
+            return make_response(
+                {'error':str(e)},
+                500)
 
 
 
