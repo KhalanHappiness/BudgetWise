@@ -265,7 +265,7 @@ class Bill(db.Model):
         return payment, next_bill
     
     def create_next_recurring_bill(self):
-        from datetime import timedelta
+        from dateutil.relativedelta import relativedelta
 
         #Create next bill when current one is paid
         if self.recurring_type == 'one-time':
@@ -273,11 +273,11 @@ class Bill(db.Model):
         
         # Calculate next due date
         if self.recurring_type == 'monthly':
-            next_due = self.due_date + timedelta(months=1)
+            next_due = self.due_date + relativedelta(months=1)
         elif self.recurring_type == 'weekly':
-            next_due = self.due_date + timedelta(weeks=1)
+            next_due = self.due_date + relativedelta(weeks=1)
         elif self.recurring_type == 'yearly':
-            next_due = self.due_date + timedelta(years=1)
+            next_due = self.due_date + relativedelta(years=1)
         else:
             return None
         # Create new bill

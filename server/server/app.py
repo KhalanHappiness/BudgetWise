@@ -3,6 +3,8 @@ from flask_cors import CORS
 from flask_restful import Api, Resource  # Enforcing RESTful principles
 from flask_migrate import Migrate
 from datetime import datetime, date
+from datetime import date, timedelta
+
 import os
 
 from models import db, User, Budget, Bill, BillPayment, Expense, Reminder, Category
@@ -367,6 +369,92 @@ class BillPayments(Resource):
         
         return make_response(data, 200)
 
+class Dashboards(Resource):
+    def get(self):
+        #Get comprehensive dashboard data for current user
+        user_id = g.user_id
+
+        try:
+            #Get date ranges
+            today = date.today()
+            thirty_days_ago = today - timedelta(days=30)
+            start_of_month = today.replace(day=1)
+
+            #Get user
+            user = User.query.get_or_404(user_id)
+
+            #Get budgets with spending
+            budgets = Budget.query.filter_by(user_id=user_id).all()
+
+            #Get recent expenses
+            recent_expenses = Expense.query.filter(
+                Expense.user_id == user_id,
+                Expense.expense_date >= thirty_days_ago
+            ).order_by(Expense.expense_date.desc()).limit(10).all()
+
+            # Get this month's expenses
+            month_expenses = Expense.query.filter(
+                Expense.user_id == user_id,
+                Expense.expense_date >= start_of_month
+            ).all()
+
+            # Get upcoming bills (next 7 days)
+            upcoming_bills = Bill.query.filter(
+                Bill.user_id == user_id,
+                Bill.paid_date.is_(None),
+                Bill.due_date >= today,
+                Bill.due_date <= today + timedelta(days=7)
+            ).all()
+
+            # Get overdue bills
+            overdue_bills = Bill.query.filter(
+                Bill.user_id == user_id,
+                Bill.paid_date.is_(None),
+                Bill.due_date < today
+            ).all()
+
+            # Get active reminders (you'll need to adjust this based on your Reminder model)
+            # active_reminders = Reminder.query.filter_by(
+            #     user_id=user_id,
+            #     is_active=True  # Adjust field name as needed
+            # ).all()
+
+            # Calculate totals
+            total_budgeted = sum(float(budget.budgeted_amount) for budget in budgets)
+            total_spent_budgets = sum(float(budget.spent_amount) for budget in budgets)
+            month_expense_total = sum(float(expense.amount) for expense in month_expenses)
+
+            data = {
+                'user': user.to_dict(),
+                'summary': {
+                    'total_budgeted': total_budgeted,
+                    'total_spent_budgets': total_spent_budgets,
+                    'budget_utilization': (total_spent_budgets / total_budgeted * 100) if total_budgeted > 0 else 0,
+                    'month_expenses_total': month_expense_total,
+                    'overdue_bills_count': len(overdue_bills),
+                    'overdue_bills_amount': sum(float(bill.amount) for bill in overdue_bills),
+                    'upcoming_bills_count': len(upcoming_bills),
+                    # 'active_reminders_count': len(active_reminders)
+                },
+                'budgets': [budget.to_dict() for budget in budgets],
+                'recent_expenses': [expense.to_dict() for expense in recent_expenses],
+                'overdue_bills': [bill.to_dict() for bill in overdue_bills],
+                'upcoming_bills': [bill.to_dict() for bill in upcoming_bills],
+                # 'active_reminders': [reminder.to_dict() for reminder in active_reminders]
+            }
+
+            return make_response(data, 200)
+
+        except Exception as e:
+            # error handling
+            return {'error': str(e)}, 500
+
+            
+
+
+
+
+
 
 # Add resources to API
 api.add_resource(Categories, '/categories')
@@ -375,6 +463,7 @@ api.add_resource(Expenses, '/expenses')
 api.add_resource(Bills, '/bills')
 api.add_resource(PayBills, '/bills/<int:bill_id>/pay')
 api.add_resource(BillPayments, '/billpayments')
+api.add_resource(Dashboards, '/dashboard')
 
 
 if __name__ == '__main__':

@@ -1,6 +1,5 @@
 import React from 'react';
-import Header from '../components/Layout/Header';
-import Sidebar from '../components/Layout/Sidebar';
+
 
 const Dashboard = () => {
   // Hardcoded data
