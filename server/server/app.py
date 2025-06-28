@@ -345,6 +345,23 @@ class Bills(Resource):
                 {'error': str(e)},
                 500)
 
+class BillsById(Resource):
+    def delete(self, bill_id):
+        #delete a bill
+        bill = Bill.query.get_or _404(bill_id)
+        if bill.user_id != g.user_id:
+            return make_response(
+                {'error': 'Unauthorized: Bill does not belong to current user'}, 
+                403)
+
+        try:
+            db.session.delete(bill)
+            db.session.commit()
+            return make_response({'message': 'Bill deleted successfully'})
+        except Exception as e:
+            db.session.rollback()
+            return make_response({'error': str(e)}, 500)
+
 
 
 
@@ -601,6 +618,7 @@ api.add_resource(Budgets, '/budgets')
 api.add_resource(Expenses, '/expenses')
 api.add_resource(Bills, '/bills')
 api.add_resource(PayBills, '/bills/<int:bill_id>/pay')
+api.add_resource(BillsById, '/bills/<int:bill_id>')
 api.add_resource(BillPayments, '/billpayments')
 api.add_resource(Dashboards, '/dashboard')
 api.add_resource(Insights, '/insights')
