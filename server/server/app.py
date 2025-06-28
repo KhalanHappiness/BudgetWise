@@ -348,7 +348,7 @@ class Bills(Resource):
 class BillsById(Resource):
     def delete(self, bill_id):
         #delete a bill
-        bill = Bill.query.get_or _404(bill_id)
+        bill = Bill.query.get(bill_id)
         if bill.user_id != g.user_id:
             return make_response(
                 {'error': 'Unauthorized: Bill does not belong to current user'}, 
@@ -562,6 +562,7 @@ class Insights(Resource):
             # Bills Summary
             upcoming_bills_count = Bill.query.filter(
                 Bill.user_id == user_id,
+                Bill.paid_date.is_(None),
                 Bill.due_date >= today
             ).count()
             overdue_bills = Bill.query.filter(
