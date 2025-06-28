@@ -413,6 +413,8 @@ class Dashboards(Resource):
                 Bill.due_date < today
             ).all()
 
+            
+
             # Get active reminders (you'll need to adjust this based on your Reminder model)
             # active_reminders = Reminder.query.filter_by(
             #     user_id=user_id,
