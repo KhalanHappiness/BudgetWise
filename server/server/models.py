@@ -238,6 +238,9 @@ class Bill(db.Model):
         #Days until due date (negative if overdue)
         return (self.due_date - date.today()).days
 
+    def validate_amount(self):
+        return isinstance(self.amount, (int, float)) and self.amount > 0
+
     def mark_paid_and_create_next(self, paid_date=None):
         #Mark bill as paid and create payment record, and create the next bill
         payment_date = paid_date or date.today()

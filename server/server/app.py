@@ -4,6 +4,7 @@ from flask_restful import Api, Resource  # Enforcing RESTful principles
 from flask_migrate import Migrate
 from datetime import datetime, date
 from datetime import date, timedelta
+from sqlalchemy import func
 
 import os
 
@@ -298,6 +299,55 @@ class Bills(Resource):
 
         return make_response(data, 200)
 
+    def post(self):
+
+        #Create a new bill for the current user
+
+        data = request.get_json()
+
+        required_fields = ['name', 'amount', 'category', 'due_date']
+
+        for field in required_fields:
+
+            if field not in data:
+
+                return make_response({'error': f'{field} is required'}, 400)
+        try:
+            due_date =  datetime.strptime(data['due_date'], '%Y-%m-%d').date()
+
+            bill = Bill(
+                user_id=g.user_id, # Use user_id from g object
+                name=data['name'],
+                amount=float(data['amount']),
+                category=data['category'],
+                due_date=due_date,
+                recurring_type=data.get('recurring_type', 'monthly')
+           )
+
+            if not bill.validate_amount():
+                return make_response({'error': 'Amount must be positive'}, 400)
+            
+            db.session.add(bill)
+            db.session.commit()
+
+            return make_response(
+                bill.to_dict(),
+                201
+            )
+
+        except ValueError as e:
+             return make_response(
+                {'error': 'Invalid date format.'},
+                400)
+        except Exception as e:
+             db.session.rollback()
+             return make_response(
+                {'error': str(e)},
+                500)
+
+
+
+
 
 class PayBills(Resource):
     def post(self, bill_id):
@@ -451,6 +501,93 @@ class Dashboards(Resource):
             # error handling
             return {'error': str(e)}, 500
 
+class Insights(Resource):
+    def get(self):
+        user_id = g.user_id
+        today = date.today()
+        start_of_month = today.replace(day=1)
+        start_of_last_month = (start_of_month - timedelta(days=1)).replace(day=1)
+        end_of_last_month = start_of_month - timedelta(days=1)
+        last_30_days = today - timedelta(days=30)
+
+        try:
+            # Budget Utilization
+            total_budgeted = db.session.query(func.sum(Budget.budgeted_amount)).filter(Budget.user_id == user_id).scalar() or 0
+            total_spent_budgets = db.session.query(func.sum(Expense.amount)).filter(
+                Expense.user_id == user_id,
+                Expense.expense_date >= start_of_month
+            ).scalar() or 0
+            budget_utilization = (total_spent_budgets / total_budgeted * 100) if total_budgeted > 0 else 0
+
+            # Spending by Category
+            category_spending = db.session.query(
+                Category.name,
+                func.sum(Expense.amount)
+            ).join(Expense).filter(
+                Expense.user_id == user_id
+            ).group_by(Category.name).all()
+            category_spending_data = [
+                {"category": name, "total_spent": float(total)} for name, total in category_spending
+            ]
+
+            # Spending Over Time (last 30 days)
+            daily_spending = db.session.query(
+                Expense.expense_date,
+                func.sum(Expense.amount)
+            ).filter(
+                Expense.user_id == user_id,
+                Expense.expense_date >= last_30_days
+            ).group_by(Expense.expense_date).order_by(Expense.expense_date).all()
+            spending_timeline = [
+                {"date": str(date), "amount": float(amount)} for date, amount in daily_spending
+            ]
+
+            # Bills Summary
+            upcoming_bills_count = Bill.query.filter(
+                Bill.user_id == user_id,
+                Bill.due_date >= today
+            ).count()
+            overdue_bills = Bill.query.filter(
+                Bill.user_id == user_id,
+                Bill.due_date < today
+            ).all()
+            overdue_bills_count = len(overdue_bills)
+            overdue_bills_amount = sum(float(bill.amount_due) for bill in overdue_bills)
+
+            # Monthly Comparison
+            this_month_spending = db.session.query(func.sum(Expense.amount)).filter(
+                Expense.user_id == user_id,
+                Expense.expense_date >= start_of_month
+            ).scalar() or 0
+            last_month_spending = db.session.query(func.sum(Expense.amount)).filter(
+                Expense.user_id == user_id,
+                Expense.expense_date >= start_of_last_month,
+                Expense.expense_date <= end_of_last_month
+            ).scalar() or 0
+
+            insights_data = {
+                "budget_utilization": {
+                    "total_budgeted": float(total_budgeted),
+                    "total_spent": float(total_spent_budgets),
+                    "utilization_percent": round(budget_utilization, 2)
+                },
+                "category_spending": category_spending_data,
+                "spending_timeline": spending_timeline,
+                "bills_summary": {
+                    "upcoming_bills_count": upcoming_bills_count,
+                    "overdue_bills_count": overdue_bills_count,
+                    "overdue_bills_amount": round(overdue_bills_amount, 2)
+                },
+                "monthly_comparison": {
+                    "this_month_spending": float(this_month_spending),
+                    "last_month_spending": float(last_month_spending)
+                }
+            }
+
+            return make_response(insights_data, 200)
+
+        except Exception as e:
+            return {'error': str(e)}, 500
             
 
 
@@ -466,6 +603,7 @@ api.add_resource(Bills, '/bills')
 api.add_resource(PayBills, '/bills/<int:bill_id>/pay')
 api.add_resource(BillPayments, '/billpayments')
 api.add_resource(Dashboards, '/dashboard')
+api.add_resource(Insights, '/insights')
 
 
 if __name__ == '__main__':
