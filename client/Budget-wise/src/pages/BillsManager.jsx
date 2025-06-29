@@ -152,7 +152,7 @@ const BillsManager = () => {
       const billsResponse = await billsApi.getBills();
       setBills(billsResponse.data.bills);
       
-      // Try to load payments, but don't fail if endpoint doesn't exist
+      // Try to load payments
       try {
         const paymentsResponse = await billsApi.getPayments();
         setPayments(paymentsResponse.payments || []);

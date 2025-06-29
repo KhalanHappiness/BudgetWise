@@ -4,6 +4,7 @@ from datetime import datetime, date, timedelta
 from decimal import Decimal
 from werkzeug.security import generate_password_hash
 import random
+import bcrypt
 
 # Add the parent directory to the path to import models
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -54,7 +55,7 @@ def seed_categories():
 def seed_users():
     """Create sample users"""
     print("Seeding users...")
-    
+
     users_data = [
         {
             'username': 'john_doe',
@@ -69,18 +70,24 @@ def seed_users():
             'is_demo_user': True
         }
     ]
-    
+
     users = []
     for user_data in users_data:
+        # bcrypt hash returns bytes
+        hashed_password = bcrypt.hashpw(
+            user_data['password'].encode('utf-8'),
+            bcrypt.gensalt()
+        )
+
         user = User(
             username=user_data['username'],
             email=user_data['email'],
-            password_hash=generate_password_hash(user_data['password']),
+            password_hash=hashed_password,  # store as bytes
             is_demo_user=user_data['is_demo_user']
         )
-        users.append(user)
         db.session.add(user)
-    
+        users.append(user)
+
     db.session.commit()
     print(f"Created {len(users)} users")
     return users

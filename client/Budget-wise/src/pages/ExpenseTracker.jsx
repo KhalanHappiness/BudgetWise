@@ -47,7 +47,7 @@ const ExpenseTracker = () => {
         }
         return res.json();
       })
-      .then((data) => setCategories(Array.isArray(data) ? data : []))
+      .then((data) => setCategories(data.data.categories || data || []))
       .catch((err) => {
         console.error('Error fetching categories:', err);
         setError('Failed to load categories');
@@ -55,49 +55,63 @@ const ExpenseTracker = () => {
   }, []);
 
   // Fetch expenses using useEffect with .then format
-  useEffect(() => {
-    const fetchExpenses = () => {
-      setLoading(true);
-      setError('');
-      
-      // Build query parameters
-      const params = new URLSearchParams();
-      if (filters.category_id) params.append('category_id', filters.category_id);
-      if (filters.start_date) params.append('start_date', filters.start_date);
-      if (filters.end_date) params.append('end_date', filters.end_date);
-      if (filters.limit) params.append('limit', filters.limit);
+  // Fetch expenses using useEffect with .then format
+useEffect(() => {
+  const fetchExpenses = () => {
+    setLoading(true);
+    setError('');
+    
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (filters.category_id) params.append('category_id', filters.category_id);
+    if (filters.start_date) params.append('start_date', filters.start_date);
+    if (filters.end_date) params.append('end_date', filters.end_date);
+    if (filters.limit) params.append('limit', filters.limit);
 
-      fetch(`http://127.0.0.1:5000/expenses?${params}`,{
-        headers: {
+    fetch(`http://127.0.0.1:5000/expenses?${params}`, {
+      headers: {
         'Authorization': `Bearer ${token}`
       }
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
       })
-        .then((res) => {
-          if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-          }
-          return res.json();
-        })
-        .then((data) => {
-          setExpenses(Array.isArray(data.expenses) ? data.expenses : []);
+      .then((data) => {
+        // Handle both possible response structures
+        const receivedData = data.data || data;
+        const expensesArray = Array.isArray(receivedData.expenses) 
+          ? receivedData.expenses 
+          : Array.isArray(receivedData) 
+            ? receivedData 
+            : [];
+            
+        setExpenses(expensesArray);
+        
+        // Handle totals if they exist in response
+        if (receivedData.total_amount !== undefined) {
+          setTotalAmount(receivedData.total_amount);
+        }
+        if (receivedData.count !== undefined) {
+          setExpenseCount(receivedData.count);
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching expenses:', err);
+        setError(`Failed to load expenses: ${err.message}`);
+        setExpenses([]);
+        setTotalAmount(0);
+        setExpenseCount(0);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
-          setTotalAmount(data.total_amount);
-          setExpenseCount(data.count);
-        })
-        .catch((err) => {
-          console.error('Error fetching expenses:', err);
-          setError(`Failed to load expenses: ${err.message}`);
-          setExpenses([]);
-          setTotalAmount(0);
-          setExpenseCount(0);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    };
-
-    fetchExpenses();
-  }, []);
+  fetchExpenses();
+}, [filters, token]); 
 
   // Get category name by ID
   const getCategoryName = (categoryData) => {
@@ -118,43 +132,55 @@ const ExpenseTracker = () => {
 
   // Manual fetch expenses function for filters
   const fetchExpensesManually = () => {
-    setLoading(true);
-    setError('');
-    
-    // Build query parameters
-    const params = new URLSearchParams();
-    if (filters.category_id) params.append('category_id', filters.category_id);
-    if (filters.start_date) params.append('start_date', filters.start_date);
-    if (filters.end_date) params.append('end_date', filters.end_date);
-    if (filters.limit) params.append('limit', filters.limit);
+  setLoading(true);
+  setError('');
+  
+  const params = new URLSearchParams();
+  if (filters.category_id) params.append('category_id', filters.category_id);
+  if (filters.start_date) params.append('start_date', filters.start_date);
+  if (filters.end_date) params.append('end_date', filters.end_date);
+  if (filters.limit) params.append('limit', filters.limit);
 
-    fetch(`http://127.0.0.1:5000/expenses?${params}`,{
-      headers: {
-        'Authorization': `Bearer ${token}`
+  fetch(`http://127.0.0.1:5000/expenses?${params}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      return res.json();
+    })
+    .then((data) => {
+      // Same handling as in useEffect
+      const receivedData = data.data || data;
+      const expensesArray = Array.isArray(receivedData.expenses) 
+        ? receivedData.expenses 
+        : Array.isArray(receivedData) 
+          ? receivedData 
+          : [];
+          
+      setExpenses(expensesArray);
+      
+      if (receivedData.total_amount !== undefined) {
+        setTotalAmount(receivedData.total_amount);
+      }
+      if (receivedData.count !== undefined) {
+        setExpenseCount(receivedData.count);
       }
     })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setExpenses(data.expenses);
-        setTotalAmount(data.total_amount);
-        setExpenseCount(data.count);
-      })
-      .catch((err) => {
-        console.error('Error fetching expenses:', err);
-        setError(`Failed to load expenses: ${err.message}`);
-        setExpenses([]);
-        setTotalAmount(0);
-        setExpenseCount(0);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
+    .catch((err) => {
+      console.error('Error fetching expenses:', err);
+      setError(`Failed to load expenses: ${err.message}`);
+      setExpenses([]);
+      setTotalAmount(0);
+      setExpenseCount(0);
+    })
+    .finally(() => {
+      setLoading(false);
+    });
+};
 
   // Add expense using .then format
   const addExpense = () => {
@@ -451,9 +477,9 @@ const ExpenseTracker = () => {
                   disabled={addingExpense}
                 >
                   <option value="">Select Category</option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
+                  {Array.isArray(categories) && categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
                     </option>
                   ))}
                 </select>

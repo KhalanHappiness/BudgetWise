@@ -24,16 +24,10 @@ const BudgetManager = () => {
         }
         return res.json();
       })
-      .then((data) => {
-        const categoriesData = Array.isArray(data?.categories)
-          ? data.categories
-          : (Array.isArray(data) ? data : []);
-
-        if (!Array.isArray(categoriesData)) {
-          throw new Error('Invalid categories format');
-        }
-
-        setCategories(categoriesData);
+      .then((data) => setCategories(data.data.categories || data || []))
+      .catch((err) => {
+        console.error('Error fetching categories:', err);
+        setError('Failed to load categories');
       })
   }, []);
 
@@ -51,17 +45,18 @@ const BudgetManager = () => {
         }
         return res.json();
       })
-      .then((data) => setBudgets(data.budgets || []))
+      .then((data) => setBudgets(data.data.budgets || []))
       .catch((err) => {
         console.error('Error fetching budgets:', err);
         setError('Failed to load budgets');
       });
   }, []);
 
-  const addBudget = async () => {
+  const addBudget = async (e) => {
     // Clear previous messages
-    setError('');
-    setSuccess('');
+     e.preventDefault()
+    setError('')
+    setSuccess('')
     
     // Validation
     if (!newBudget.category_id || !newBudget.budgeted_amount) {
@@ -173,7 +168,7 @@ const BudgetManager = () => {
                   disabled={loading}
                 >
                   <option value="">Select Category</option>
-                  {categories.map((cat) => (
+                  {Array.isArray(categories) && categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
                     </option>

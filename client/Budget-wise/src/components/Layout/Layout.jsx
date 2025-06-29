@@ -18,13 +18,7 @@ const Layout = ({ children }) => {
               ${sidebarOpen ? 'd-block' : 'd-none'} 
               d-md-block bg-white border-end
             `}
-             style={{
-                  width: sidebarOpen ? '75%' : '',
-                  maxWidth: '240px',
-                  zIndex: 1040,
-                  position: 'absolute',
-                  
-                }}
+             
           >
             <Sidebar onClose={() => setSidebarOpen(false)} />
           </div>

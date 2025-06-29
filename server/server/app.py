@@ -213,7 +213,7 @@ class ReadCookies(Resource):
 
 # --- Categories Resource ---
 class Categories(Resource):
-    @jwt_required()
+    
     def get(self):
         try:
             categories = Category.query.order_by(Category.name).all()
@@ -223,7 +223,6 @@ class Categories(Resource):
             logger.error(f"Error fetching categories: {str(e)}")
             return create_response(error='Failed to fetch categories', status=500)
 
-    @jwt_required()
     def post(self):
         try:
             data = request.get_json()

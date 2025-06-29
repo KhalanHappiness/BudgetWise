@@ -25,17 +25,22 @@ ChartJS.register(
 );
 
 const Insights = () => {
-  const [insights, setInsights] = useState(null);
+  const [insights, setInsights] = useState(null)
+  const token = localStorage.getItem('access_token')
 
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/insights')
+    fetch('http://127.0.0.1:5000/insights',{
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         return response.json();
       })
-      .then(data => setInsights(data))
+      .then(data => setInsights(data.data))
       .catch(error => {
         console.error('Error fetching insights:', error);
       });
@@ -44,15 +49,15 @@ const Insights = () => {
   if (!insights) return <div className="p-4">Loading insights...</div>;
 
   const budgetData = {
-    labels: ['Spent', 'Remaining'],
-    datasets: [{
-      data: [
-        insights.budget_utilization.total_spent,
-        insights.budget_utilization.total_budgeted - insights.budget_utilization.total_spent
-      ],
-      backgroundColor: ['#ef4444', '#10b981']
-    }]
-  };
+  labels: ['Spent', 'Remaining'],
+  datasets: [{
+    data: [
+      insights?.budget_utilization?.total_spent || 0,
+      (insights?.budget_utilization?.total_budgeted || 0) - (insights?.budget_utilization?.total_spent || 0)
+    ],
+    backgroundColor: ['#ef4444', '#10b981']
+  }]
+};
 
   const categoryData = {
     labels: insights.category_spending.map(c => c.category),
