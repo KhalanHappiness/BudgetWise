@@ -7,32 +7,75 @@ import ExpenseTracker from '../pages/ExpenseTracker';
 import Insights from '../pages/Insights';
 import Login from '../pages/Login';
 import Layout from '../components/Layout/Layout';
-import { useAuth } from '../context/AuthContext'; 
+import { useAuth } from '../context/AuthContext';
 
 const AppRoutes = () => {
-  const { currentUser } = useAuth();
+  const { user } = useAuth(); // ✅ correct key from context
 
-  if (!currentUser) {
-    return (
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    );
-  }
+  const PrivateRoute = ({ children }) => {
+    return user ? children : <Navigate to="/" replace />;
+  };
 
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/bills" element={<BillsManager />} />
-        <Route path="/budget" element={<BudgetManager />} />
-        <Route path="/expenses" element={<ExpenseTracker />} />
-        <Route path="/insights" element={<Insights />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </Layout>
+    <Routes>
+      {/* Public Route */}
+      <Route path="/" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
+
+      {/* Protected Routes inside Layout */}
+      <Route
+        path="/dashboard"
+        element={
+          <PrivateRoute>
+            <Layout>
+              <Dashboard />
+            </Layout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/bills"
+        element={
+          <PrivateRoute>
+            <Layout>
+              <BillsManager />
+            </Layout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/budget"
+        element={
+          <PrivateRoute>
+            <Layout>
+              <BudgetManager />
+            </Layout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/expenses"
+        element={
+          <PrivateRoute>
+            <Layout>
+              <ExpenseTracker />
+            </Layout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/insights"
+        element={
+          <PrivateRoute>
+            <Layout>
+              <Insights />
+            </Layout>
+          </PrivateRoute>
+        }
+      />
+
+      {/* Catch-all */}
+      <Route path="*" element={<Navigate to={user ? "/dashboard" : "/"} replace />} />
+    </Routes>
   );
 };
 

@@ -5,6 +5,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const token = localStorage.getItem('access_token')
+
   // Fetch dashboard data from backend
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -14,8 +16,8 @@ const Dashboard = () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            // Add authorization header if you're using JWT tokens
-            // 'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
+            
           },
         });
 

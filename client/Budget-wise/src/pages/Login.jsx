@@ -10,7 +10,7 @@ const Login = () => {
   const [serverError, setServerError] = useState('');
 
   const validationSchema = Yup.object().shape({
-    name: isSignUp ? Yup.string().required('Full name is required') : Yup.string(),
+    username: isSignUp ? Yup.string().required('Username is required') : Yup.string(),
     email: Yup.string().email('Invalid email').required('Email is required'),
     password: Yup.string().required('Password is required').min(6, 'Must be at least 6 characters'),
   });
@@ -19,7 +19,7 @@ const Login = () => {
     setServerError('');
     try {
       if (isSignUp) {
-        await signup(values.name, values.email, values.password);
+        await signup(values.username, values.email, values.password);
       } else {
         await login(values.email, values.password);
       }
@@ -53,7 +53,7 @@ const Login = () => {
                 )}
 
                 <Formik
-                  initialValues={{ name: '', email: '', password: '' }}
+                  initialValues={{ username: '', email: '', password: '' }}
                   validationSchema={validationSchema}
                   onSubmit={handleSubmit}
                 >
@@ -63,12 +63,12 @@ const Login = () => {
                         <div className="mb-3">
                           <label className="form-label">Username</label>
                           <Field
-                            name="name"
+                            name="username"
                             type="text"
                             className="form-control"
                             placeholder="Enter your username"
                           />
-                          <ErrorMessage name="name" component="div" className="text-danger" />
+                          <ErrorMessage name="username" component="div" className="text-danger" />
                         </div>
                       )}
 
@@ -77,7 +77,7 @@ const Login = () => {
                         <Field
                           name="email"
                           type="email"
-                          className="form-control "
+                          className="form-control"
                           placeholder="Enter your email"
                         />
                         <ErrorMessage name="email" component="div" className="text-danger" />
@@ -89,7 +89,7 @@ const Login = () => {
                           <Field
                             name="password"
                             type={showPassword ? 'text' : 'password'}
-                            className="form-control "
+                            className="form-control"
                             placeholder="Enter your password"
                           />
                           <button
@@ -105,7 +105,7 @@ const Login = () => {
 
                       <button
                         type="submit"
-                        className="btn btn-primary  w-100 mb-3"
+                        className="btn btn-primary w-100 mb-3"
                         disabled={isSubmitting || loading}
                       >
                         {loading || isSubmitting ? (
@@ -136,6 +136,7 @@ const Login = () => {
                     type="button"
                     className="btn btn-success w-100"
                     onClick={loginDemo}
+                    disabled={loading}
                   >
                     <i className="bi bi-rocket me-2"></i>
                     Try Demo (Skip Login)

@@ -9,32 +9,49 @@ const BudgetManager = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+    const token = localStorage.getItem('access_token')
+
   // Fetch categories for dropdown
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/categories')
+    fetch('http://127.0.0.1:5000/categories', {
+          headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
         return res.json();
       })
-      .then((data) => setCategories(data))
-      .catch((err) => {
-        console.error('Error fetching categories:', err);
-        setError('Failed to load categories');
-      });
+      .then((data) => {
+        const categoriesData = Array.isArray(data?.categories)
+          ? data.categories
+          : (Array.isArray(data) ? data : []);
+
+        if (!Array.isArray(categoriesData)) {
+          throw new Error('Invalid categories format');
+        }
+
+        setCategories(categoriesData);
+      })
   }, []);
 
   // Fetch budgets
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/budgets')
+    fetch('http://127.0.0.1:5000/budgets',{
+      
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+    })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
         return res.json();
       })
-      .then((data) => setBudgets(data))
+      .then((data) => setBudgets(data.budgets || []))
       .catch((err) => {
         console.error('Error fetching budgets:', err);
         setError('Failed to load budgets');
@@ -64,6 +81,7 @@ const BudgetManager = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           category_id: parseInt(newBudget.category_id),

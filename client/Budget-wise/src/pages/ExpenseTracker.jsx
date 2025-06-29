@@ -29,18 +29,25 @@ const ExpenseTracker = () => {
     amount: '', 
     category_id: '', 
     expense_date: new Date().toISOString().split('T')[0]
-  });
+  })
+
+  const token = localStorage.getItem('access_token')
+
 
   // Fetch categories using useEffect with .then format
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/categories')
+    fetch('http://127.0.0.1:5000/categories',{
+       headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
         return res.json();
       })
-      .then((data) => setCategories(data))
+      .then((data) => setCategories(Array.isArray(data) ? data : []))
       .catch((err) => {
         console.error('Error fetching categories:', err);
         setError('Failed to load categories');
@@ -60,7 +67,11 @@ const ExpenseTracker = () => {
       if (filters.end_date) params.append('end_date', filters.end_date);
       if (filters.limit) params.append('limit', filters.limit);
 
-      fetch(`http://127.0.0.1:5000/expenses?${params}`)
+      fetch(`http://127.0.0.1:5000/expenses?${params}`,{
+        headers: {
+        'Authorization': `Bearer ${token}`
+      }
+      })
         .then((res) => {
           if (!res.ok) {
             throw new Error(`HTTP error! status: ${res.status}`);
@@ -68,7 +79,8 @@ const ExpenseTracker = () => {
           return res.json();
         })
         .then((data) => {
-          setExpenses(data.expenses);
+          setExpenses(Array.isArray(data.expenses) ? data.expenses : []);
+
           setTotalAmount(data.total_amount);
           setExpenseCount(data.count);
         })
@@ -116,7 +128,11 @@ const ExpenseTracker = () => {
     if (filters.end_date) params.append('end_date', filters.end_date);
     if (filters.limit) params.append('limit', filters.limit);
 
-    fetch(`http://127.0.0.1:5000/expenses?${params}`)
+    fetch(`http://127.0.0.1:5000/expenses?${params}`,{
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
@@ -169,6 +185,7 @@ const ExpenseTracker = () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(expenseData)
     })

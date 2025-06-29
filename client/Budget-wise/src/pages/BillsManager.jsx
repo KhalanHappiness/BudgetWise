@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Layout/Sidebar';
 
 // API Configuration and Helper Functions
-const API_BASE_URL = 'http://localhost:5000'; // Removed /api since your routes don't use it
+const API_BASE_URL = 'http://localhost:5000'; 
 
 // Debug: Log API calls
 const logApiCall = (method, url) => {
@@ -32,7 +32,7 @@ const handleResponse = async (response) => {
 
 // Helper function to get auth headers 
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('authToken')
+  const token = localStorage.getItem('access_token')
   return {
     'Content-Type': 'application/json',
     ...(token && { 'Authorization': `Bearer ${token}` })
@@ -150,7 +150,7 @@ const BillsManager = () => {
       
       // Load bills first
       const billsResponse = await billsApi.getBills();
-      setBills(billsResponse.bills || []);
+      setBills(billsResponse.data.bills);
       
       // Try to load payments, but don't fail if endpoint doesn't exist
       try {

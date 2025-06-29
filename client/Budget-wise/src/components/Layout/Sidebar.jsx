@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-const Sidebar = () => {
+const Sidebar = ({ onClose }) => {
   const location = useLocation();
 
   const menuItems = [
@@ -13,7 +13,6 @@ const Sidebar = () => {
   ];
 
   return (
-  
     <div className="bg-white border-end shadow-sm min-vh-100">
       <div className="p-3">
         <nav className="nav flex-column">
@@ -21,6 +20,7 @@ const Sidebar = () => {
             <Link
               key={item.path}
               to={item.path}
+              onClick={onClose} // 👈 This auto-closes sidebar on mobile
               className={`nav-link py-3 px-3 rounded mb-1 ${
                 location.pathname === item.path
                   ? 'bg-light text-primary fw-medium'
