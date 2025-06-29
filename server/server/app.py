@@ -132,6 +132,12 @@ class Login(Resource):
             return response
         return make_response(f"Invalid credentials!")
 
+class ReadCookies(Resource):
+    def get(self):
+        cookies_value = request.cookies.get('username')
+
+        return make_response(f'cookie: {cookie_value}')
+
 
 
 class Categories(Resource):
@@ -656,6 +662,7 @@ class Insights(Resource):
 # Add resources to API
 api.add_resource(Register, '/register')
 api.add_resource(Login, '/login')
+api.add_resource(ReadCookies, '/read-cookie')
 api.add_resource(Categories, '/categories')
 api.add_resource(Budgets, '/budgets')
 api.add_resource(Expenses, '/expenses')
