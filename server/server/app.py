@@ -116,6 +116,24 @@ class Register(Resource):
 
         return make_response(f'New user created successfully', 201)
 
+class Login(Resource):
+    def post(self):
+        data = request.get_json()
+        password = data ["password"]
+        email = data["email"]
+
+        user = User.query.filter_by(email=email).first()
+        if user and bcrypt.checkpw(password.encode('utf-8'), user.password_hash):
+            access_token = create_access_token(identity=email)
+            response = make_response(f"Welcome {user.username}")
+
+            set_access_cookies(response, access_token) #save JWT in httponly cookies
+
+            return response
+        return make_response(f"Invalid credentials!")
+
+
+
 class Categories(Resource):
     def get(self):
         categories = Category.query.order_by(Category.name).all()
@@ -637,6 +655,7 @@ class Insights(Resource):
 
 # Add resources to API
 api.add_resource(Register, '/register')
+api.add_resource(Login, '/login')
 api.add_resource(Categories, '/categories')
 api.add_resource(Budgets, '/budgets')
 api.add_resource(Expenses, '/expenses')
