@@ -37,7 +37,6 @@ class Config:
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
     JWT_TOKEN_LOCATION = ['headers']  # Just use headers - much simpler!
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)
-    DEMO_MODE = os.environ.get('DEMO_MODE', 'false').lower() == 'true'
 
 # Validate required environment variables
 if not Config.JWT_SECRET_KEY:
@@ -94,43 +93,7 @@ def get_current_user():
         logger.error(f"Error getting current user: {str(e)}")
         return None
 
-# --- Demo User Handling ---
-DEMO_USERNAME = "demo_budget_user"
-DEMO_EMAIL = "demo@budgetapp.com"
-DEMO_PASSWORD_HASH = bcrypt.hashpw("demo123".encode('utf-8'), bcrypt.gensalt())
 
-def get_or_create_demo_user():
-    """Retrieves or creates demo user (only in demo mode)"""
-    if not Config.DEMO_MODE:
-        return None
-        
-    demo_user = User.query.filter_by(is_demo_user=True).first()
-    if demo_user:
-        logger.info(f"Using existing demo user: {demo_user.username} (ID: {demo_user.id})")
-        return demo_user
-
-    # If no demo user but other users exist, use first user
-    any_user = User.query.first()
-    if any_user:
-        logger.info(f"No explicit demo user found. Using first existing user: {any_user.username}")
-        return any_user
-
-    # Create new demo user
-    logger.info(f"Creating new demo user: {DEMO_USERNAME}")
-    new_demo_user = User(
-        username=DEMO_USERNAME,
-        email=DEMO_EMAIL,
-        password_hash=DEMO_PASSWORD_HASH,
-        is_demo_user=True
-    )
-    try:
-        db.session.add(new_demo_user)
-        db.session.commit()
-        return new_demo_user
-    except Exception as e:
-        logger.error(f"Error creating demo user: {str(e)}")
-        db.session.rollback()
-        return None
 
 # --- JWT Error Handlers ---
 @jwt.expired_token_loader
@@ -148,24 +111,10 @@ def missing_token_callback(error):
 # --- Request Handlers ---
 @app.before_request
 def before_request_load_user():
-    """Load user for each request (fallback for demo mode)"""
-    # Skip for public endpoints
+    """Skip authentication for public endpoints"""
     public_endpoints = ['register', 'login', 'hello']
     if request.endpoint in public_endpoints:
         return
-    
-    # Only use demo user fallback if in demo mode and no JWT token
-    if Config.DEMO_MODE:
-        user_id_from_header = request.headers.get('X-User-Id', type=int)
-        user_id_from_query = request.args.get('user_id', type=int)
-
-        if user_id_from_header:
-            g.user_id = user_id_from_header
-        elif user_id_from_query:
-            g.user_id = user_id_from_query
-        else:
-            demo_user = get_or_create_demo_user()
-            g.user_id = demo_user.id if demo_user else None
 
 # --- Routes ---
 @app.route('/')
@@ -241,7 +190,7 @@ class Login(Resource):
         except Exception as e:
             logger.error(f"Login error: {str(e)}")
             return create_response(error='Login failed', status=500)
-            
+
 class Logout(Resource):
     @jwt_required()
     def post(self):
