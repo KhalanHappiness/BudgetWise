@@ -61,12 +61,12 @@ const Login = () => {
                     <Form>
                       {isSignUp && (
                         <div className="mb-3">
-                          <label className="form-label">Full Name</label>
+                          <label className="form-label">Username</label>
                           <Field
                             name="name"
                             type="text"
                             className="form-control"
-                            placeholder="Enter your full name"
+                            placeholder="Enter your username"
                           />
                           <ErrorMessage name="name" component="div" className="text-danger" />
                         </div>

@@ -5,6 +5,12 @@ from flask_migrate import Migrate
 from datetime import datetime, date
 from datetime import date, timedelta
 from sqlalchemy import func
+from flask_jwt_extended import(
+
+    JWTManager, create_access_token,
+    jwt_required, get_jwt_identity,
+    set_access_cookies, unset_jwt_cookies
+)
 
 import os
 
@@ -93,6 +99,22 @@ def before_request_load_user():
 def hello():
     return "Hello, World!"
 
+class Register(Resource):
+    def post(self):
+        data = request.get_json()
+        username = data["username"]
+        password = data["password"]
+        email = data['email']
+
+        if User.query.filter_by(email=email).first():
+            return make_response(f'This user already exists', 400)
+
+        hashed =bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        new_user = User(email=email, username=username, password_hash=hashed)
+        db.session.add(new_user)
+        db.session.commit()
+
+        return make_response(f'New user created successfully', 201)
 
 class Categories(Resource):
     def get(self):
@@ -614,6 +636,7 @@ class Insights(Resource):
 
 
 # Add resources to API
+api.add_resource(Register, '/register')
 api.add_resource(Categories, '/categories')
 api.add_resource(Budgets, '/budgets')
 api.add_resource(Expenses, '/expenses')
