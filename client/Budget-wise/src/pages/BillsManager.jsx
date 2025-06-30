@@ -134,6 +134,8 @@ const BillsManager = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddBill, setShowAddBill] = useState(false);
+  const [editingBill, setEditingBill] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [newBill, setNewBill] = useState({
     name: '', amount: '', category: '', due_date: '', recurring_type: 'monthly'
   });
@@ -196,6 +198,36 @@ const BillsManager = () => {
     } catch (err) {
       setError(err.message);
       console.error('Error adding bill:', err);
+    }
+  };
+
+  const editBill = async () => {
+    if (!editingBill.name || !editingBill.amount || !editingBill.due_date) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      setError(null);
+      
+      // Convert form data to match API expectations
+      const billData = {
+        name: editingBill.name,
+        amount: parseFloat(editingBill.amount),
+        category: editingBill.category,
+        due_date: editingBill.due_date,
+        recurring_type: editingBill.recurring_type
+      };
+
+      await billsApi.updateBill(editingBill.id, billData);
+      
+      // Reset form and reload data
+      setShowEditModal(false);
+      setEditingBill(null);
+      await loadBillsAndPayments();
+    } catch (err) {
+      setError(err.message);
+      console.error('Error editing bill:', err);
     }
   };
 
@@ -356,19 +388,33 @@ const BillsManager = () => {
                       </>
                     )}
                   </div>
-                  <div className="d-flex align-items-center gap-2">
-                    <span className="fw-bold">${bill.amount}</span>
+                  <div className="d-flex align-items-center gap-1">
+                    <span className="fw-bold me-2">${bill.amount}</span>
+                    <button 
+                      className="btn btn-sm btn-outline-primary me-1" 
+                      onClick={() => {
+                        setEditingBill(bill);
+                        setShowEditModal(true);
+                      }}
+                      title="Edit Bill"
+                    >
+                      <i className="bi bi-pencil"></i>
+                    </button>
                     {bill.status !== 'paid' && (
                       <button 
-                        className="btn btn-sm btn-success" 
+                        className="btn btn-sm btn-success me-1" 
                         onClick={() => markAsPaid(bill.id)}
                         title="Mark as Paid"
                       >
                         ✓
                       </button>
                     )}
-                    <button className="btn btn-sm btn-outline-danger" onClick={() => deleteBill(bill.id)}>
-                      <span>🗑️</span>
+                    <button 
+                      className="btn btn-sm btn-outline-danger" 
+                      onClick={() => deleteBill(bill.id)}
+                      title="Delete Bill"
+                    >
+                      <i className="bi bi-trash"></i>
                     </button>
                   </div>
                 </li>
@@ -377,6 +423,98 @@ const BillsManager = () => {
           )}
         </div>
       </div>
+
+      {/* Edit Bill Modal */}
+      {showEditModal && editingBill && (
+        <div className="modal" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Edit Bill</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingBill(null);
+                  }}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label className="form-label">Bill Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editingBill.name}
+                      onChange={(e) => setEditingBill({...editingBill, name: e.target.value})}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label">Amount</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      step="0.01"
+                      value={editingBill.amount}
+                      onChange={(e) => setEditingBill({...editingBill, amount: e.target.value})}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label">Category</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editingBill.category}
+                      onChange={(e) => setEditingBill({...editingBill, category: e.target.value})}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label">Due Date</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={editingBill.due_date}
+                      onChange={(e) => setEditingBill({...editingBill, due_date: e.target.value})}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label">Recurring Type</label>
+                    <select
+                      className="form-select"
+                      value={editingBill.recurring_type}
+                      onChange={(e) => setEditingBill({...editingBill, recurring_type: e.target.value})}
+                    >
+                      <option value="monthly">Monthly</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="yearly">Yearly</option>
+                      <option value="one-time">One-time</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingBill(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="btn btn-primary" 
+                  onClick={editBill}
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {payments.length > 0 && (
         <div className="card mt-4">
@@ -403,6 +541,27 @@ const BillsManager = () => {
           </div>
         </div>
       )}
+
+      {/* Modal backdrop styling */}
+      <style jsx>{`
+        .modal {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 1050;
+          overflow: auto;
+        }
+        .modal-dialog {
+          margin: 1.75rem auto;
+          max-width: 600px;
+        }
+        .btn-sm {
+          padding: 0.25rem 0.5rem;
+          font-size: 0.875rem;
+        }
+      `}</style>
     </div>
   );
 };
