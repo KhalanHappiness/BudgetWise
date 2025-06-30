@@ -853,4 +853,4 @@ api.add_resource(Insights, '/insights')
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
